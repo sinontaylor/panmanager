@@ -1,0 +1,540 @@
+Summary
+
+Panmanager is a Python “API Multi Tool” that uses the Pandevice module to leverage the Palo Alto API to both collect existing configurations and issue configuration via a pre-determined CSV format. 
+The idea is very similar to the ofiller/odumper tools used for Check Point object manipulation but extends the supported object types and is only for Palo Alto devices. 
+
+Panmanager supports Panorama Objects and Device Groups and Firewalls.
+
+These two components will be discussed in the following two sections followed by a suggested method of working.
+
+***************************************************************************************************
+CSV Format
+           General Rules
+
+When creating a file in the standard CSV format consider the following:
+ 
+    • A single file can hold all supported commands for a device (objects/rules/routes/dips).
+
+    • Where necessary, fields must be encapsulated in Unicode quotes ("") in order to support Python CSV modules. E.g. fields containing commas.
+
+    • Fields that may contain multiple values must be written as lists inside square brackets "[]", e.g.
+
+		 "['UNC_5.5.1.0m24', 'UNC_5.5.2.0m24', 'UNC_5.5.3.0m24']" 
+
+	This holds true even for lists of one item. 
+
+Note: this is the Python list format, see Pandevice documentation for attribute variable types (links below per object) showing which fields are lists etc.
+
+    • With the exception of ‘Rules’, the order of the entries inside the CSV file is not important as Panmanager sorts accordingly.
+
+    • The last field ‘ignore_this_end_marker’ is a marker to stop Microsoft Excel from removing empty fields.
+
+    • The CSV header contains 100 fields and is hashed out. This is for information only and is not actually required by the tool for reading but its useful for opening in Microsoft Excel:
+
+"#vendor","objtype","op_action","location","name","subtype","members","ip","netmask","cidr","description","color","protocol","source_port","destination_port","nexthop","tag","value","interface","enable_user_identification","metric","mgmt_profile","zone","rule_action","application","category","data_filtering","destination","disable_server_response_inspection","disabled","file_blocking","fromzone","group","hip_profiles","icmp_unreachable","log_end","log_setting","log_start","negate_destination","negate_source","negate_target","schedule","service","source","source_user","spyware","target","tozone","url_filtering","virus","vulnerability","wildfire_analysis","destination_dynamic_translated_address","destination_dynamic_translated_distribution","destination_dynamic_translated_port","destination_translated_address","destination_translated_port","ha_binding","nat_type","source_translation_address_type","source_translation_fallback_interface","source_translation_fallback_ip_address","source_translation_fallback_ip_type","source_translation_fallback_translated_addresses","source_translation_fallback_type","source_translation_interface","source_translation_ip_address","source_translation_static_bi_directional","source_translation_static_translated_address","source_translation_translated_addresses","source_translation_type","to_interface","category","subcategory","technology","risk","evasive","excessive_bandwidth_use","prone_to_misuse","is_saas","transfers_files","tunnels_other_apps","used_by_malware","has_known_vulnerabilities","pervasive","default_type","parent_app","timeout","tcp_timeout","udp_timeout","tcp_half_closed_timeout","tcp_time_wait_timeout","tunnel_applications","file_type_ident","virus_ident","data_ident","default_port","default_ip_protocol","default_icmp_type","default_icmp_code","ignore_this_end_marker"
+
+Note: Any line that is hashed out will be ignored by the tool.
+
+    • Where possible the fields map directly to the Pandevice Class attributes but in some cases there is field re-use (see tables below for details). Note: this is probably something to remediate in future versions.
+
+    • Each object type (as determined by Pandevice) has its own set of mandatory attributes (see tables below for details).
+
+    • The first five fields are mandatory* and will be explained in the following series of tables:
+        ◦ vendor
+        ◦ objtype
+        ◦ op_action
+        ◦ location
+        ◦ name
+
+*Note: ‘name’ is not required for Dips.
+
+
+           Mandatory Fields
+
+The following ‘vendor’ strings are supported:
+
+palo
+
+The following ‘objtype’ strings are supported:
+
+address
+address-group
+service
+service-group
+tag
+dip
+application
+application-group
+security-rule
+nat-rule
+pre-security-rule
+post-security-rule
+pre-nat-rule
+post-nat-rule
+route
+
+Possible future supported ‘objtype’ strings:
+
+virtual-system
+virtual-router
+system
+zone
+interface
+application-filter
+security-profile-grp
+
+Note: any expansion to include different rule types e.g.: Application Override, Decryption, DoS Protection, Policy Based Forwarding , QoS etc would require updating Pandevice itself. 
+
+The following ‘op_action’ strings are supported:
+
+create
+delete
+edit
+removefromgroup
+addtogroup
+
+Note: Possible future supported ‘op_action’ string could be ‘rename’ (as Palo Alto support object renaming).
+
+The following ‘location’ strings are supported:
+
+location
+global
+shared
+
+The fifth field: ‘name’, is a free text form field and has no restrictions outside of what Pandevice will permit in terms of field length and permitted characters etc.
+
+When creating objects each line will need the following mandatory* attributes in green:
+
+*Note: ‘name’ is not required for Dips.
+
+palo
+objtype
+op_action
+create
+location
+name
+
+Examples:
+palo,address-group,create,51MGMT_GP,GLOBAL-99MGMT-MANDI_SERVERS,
+
+In addition to this, each object type has its own set of attributes. These are discussed in the next section.
+
+           Object Attributes
+
+Each object type is presented in its own table with the mandatory attributes marked with asteriks:
+
+Address Objects:
+
+subtype
+ip-netmask
+value
+cidr
+tag
+
+subtype
+ip-range/fqdn
+value
+tag
+
+Examples:
+palo,address,create,vsys1,host_172.16.0.1m32,ip-netmask,,,,172.16.0.1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Address Group Objects:
+
+subtype
+static
+value
+members
+tag
+description
+
+subtype
+dynamic
+value
+tag
+description
+
+Examples:
+palo,address-group,create,vsys1,GLOBAL-MANDI_SERVERS,static,"['host_10.10.10.254m32']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+palo,address-group,create,vsys1,GLOBAL-ACS_SERVERS,dynamic,,,,,Cisco Access Control System,,,,,,,'GLOBAL-ACS_TAG',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Service Objects:
+
+protocol
+destination_port
+source_port
+tag
+description
+
+Examples:
+palo,service,create,vsys1,TCP-5989,,,,,,,,tcp,,5989,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+palo,service,create,vsys1,UDP-53-SRC,,,,,,"UDP DNS responses",,udp,53,"53,1023-65535",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Service Group Objects:
+
+value
+members
+tag
+
+Examples:
+palo,service-group,create,vsys1,AMS-INBOUND_SERVICES,,"['TCP-7', 'TCP-3872', 'TCP-4100', 'UDP-7']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Tag Objects:
+
+comments
+description
+color
+
+Examples:
+palo,tag,create,vsys1,GLOBAL-ONBOARDING_TAG,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Dip Objects:
+
+members
+tag
+
+Examples:
+palo,dip,create,vsys1,,,"['167.68.250.110', '167.68.251.110', '10.205.76.10']",,,,,,,,,,LEGACY_SERVER_TAG,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, ,,,,,,,,,,,, ,,,,,,end
+
+Note: for Dips, ‘name’ is actually determined from combining ‘ip-tag’ and as such is not required in the CSV file.
+
+
+Static Route Objects:
+
+destination
+cidr
+subtype
+nexthop
+interface
+value
+metric
+
+Examples:
+palo,route,create,default,route-1-name,ip-address,,,,192.168.1.0/24,,,,,,10.10.10.254,,,,,10,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Application Group Objects:
+
+value
+members
+tag
+
+Examples:
+palo,application-group,create,vsys1,SERVER_PROTOCOLS,,"['ssh', 'ms-ds-smb', 'netbios-dg']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+
+Application Objects:
+
+description
+category
+subcategory
+technology
+risk
+default_type
+default_port
+default_ip_protocol
+default_icmp_type
+default_icmp_code
+parent_app
+timeout
+tcp_timeout
+udp_timeout
+tcp_half_closed_timeout
+tcp_time_wait_timeout
+evasive_behavior
+consume_big_bandwidth
+used_by_malware
+able_to_transfer_file
+has_known_vulnerability
+tunnel_other_application
+tunnel_applications
+prone_to_misuse
+pervasive_use
+file_type_ident
+virus_ident
+data_ident
+tag
+
+Examples:
+
+palo,application,create,shared,icmp-type-8,,,,,,ICMP Echo Request type-8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,networking,ip-protocol,network-protocol,1,,,,,,,,,,ident-by-icmp-type,,,,,,,,,,,end
+
+
+Security Rule Objects:
+
+action
+rule_action
+application
+category
+data_filtering
+description
+destination
+disable_server_response_inspection
+disabled
+file_blocking
+fromzone
+group
+Hip_profiles
+icmp_unreachable
+log_end
+log_setting
+log_start
+negate_destination
+negate_source
+negate_target
+schedule
+service
+source
+source_user
+spyware
+tag
+target
+tozone
+type
+url_filtering
+virus
+vulnerability
+wildfire_analysis
+
+Examples:
+
+palo,security-rule,create,vsys1,"Permit Any",,,,,,"Ensure that service column is set to any",,,,,,,,,,,,,allow,"['any']",,,"['any']",,,"['test-local-use']","['any']",,"['any']",,,LOG-PROFILE,,,,,,"['any']","['any']","['any']","['strict']",,"['any']","['default']","['default']","['strict']","['default']",,,,,,,,,,,,,,,,,,,,,"['any']",,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+NAT Rule Objects:
+
+description
+destination
+destination_dynamic_translated_address
+destination_dynamic_translated_distribution
+destination_dynamic_translated_port
+destination_translated_address
+destination_translated_port
+disabled
+fromzone
+ha_binding
+nat_type
+negate_target
+service
+source
+source_translation_address_type
+source_translation_fallback_interface
+source_translation_fallback_ip_address
+source_translation_fallback_ip_type
+source_translation_fallback_translated_addresses
+source_translation_fallback_type
+source_translation_interface
+source_translation_ip_address
+source_translation_static_bi_directional
+source_translation_static_translated_address
+source_translation_translated_addresses
+source_translation_type
+source_translation_type
+tag
+target
+to_interface
+tozone
+
+Examples:
+palo,nat-rule,create,vsys1,"Test NAT",,,,,,,,,,,,,,,,,,,,,,,"['192.168.0.1']",,True,,"['untrust']",,,,,,,,,,,any,"['10.10.10.1']",,,,"['trust']",,,,,,,,,,,ipv4,,,,,,,,,,20.20.20.1,,static-ip,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Delete Objects:
+** just the standard mandatory fields
+
+Examples
+palo,address,delete,vsys1,host_10.54.23.65m32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Edit Objects:
+**any other fields
+
+Examples:
+palo,pre-security-rule,edit,vsys1,test-rule,,,,,,,,,,,,,,,,,,,,"['group test', 'ssh']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+palo,tag,edit,vsys1,TEST-TAG,,,,,,,Red,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Note: for editing objects, the tool supports single or multiple attribute edits. Simply write the replacement value in the appropriate column. 
+
+Add/Remove Members:
+
+members
+
+Examples:
+palo,application-group,add,vsys1,SERVER_PROTOCOLS,,"['oracle-goldengate']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+palo,application-group,remove,vsys1,SERVER_PROTOCOLS,,"['ping', 'ssh', 'oracle']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+
+***************************************************************************************************
+
+Panmanager
+           
+Note: Current Tool version is 1.4.
+
+General Rules
+
+Panmanager is able to perform the actions detailed above providing a correctly formatted CSV file is supplied.
+
+Some details concerning the flow inside the tool:
+
+    • The tool contains a lot of error handling since it is designed to be used in Automation. 
+
+	Tip: Check the log file for errors!
+
+    • The tool will email its log file upon completion.
+
+    • The tool will perform the CSV ‘actions’ in a specific order:
+
+	action_order = ['delete', 'create', 'edit', 'add', 'remove']
+
+    • For each ‘action’, similarly the objects are updated in a specific order (owing to dependencies):
+
+	object_order = ['route', 'dip', 'tag', 'address', 'address-group', 'service', 'service-group', 'application', 'application-group', 'security-rules', 'nat-rules', 'deletion' , 'edits', 'add/remove']
+
+    • Owing to dependencies, any ‘shared’ objects are updated first.
+
+    • Groups will not be left empty if members are removed (placeholder objects employed).
+
+    • Groups are emptied before deletion.
+
+    • Rules are created sequentially and appended to the existing policy. Order mirrors that of the CSV file.
+
+    • Any errors are captured and logged.
+
+    • The tool does not ‘commit’ the policy unless the ‘--commit’ switch is provided. This is so the engineer has the option to manually ‘revert to running configuration’. Note: if ‘--commit’ switch is provided and API update errors are encountered then the tool will automatically ‘revert to running configuration’ and release locks.
+
+    • The tool takes configuration and commit locks unless the ‘--no-locks’ or ‘--test’ switch is provided. Note: locks are relinquished unless an update error occurred.
+
+    • The tool checks object existence unless the ‘--no-checks’ switch is provided. 
+
+
+Operation
+
+There are various CLI options available as explained below (mandatory items in green):
+
+usage: panmanager.py [-h] -d DEVICE -u USERNAME -p
+                 PASSWORD [-l LOCATION]
+                 [-o [OUTPUT]] [-v | -q]
+                 [-f FILENAME] [--no-checks]
+                 [--no-locks] [-t | -c] [-i | -a]
+
+CLI options
+-d
+device to log into
+-u
+username
+-p
+password
+-l [location]
+location – ‘ALL’ or specific Device Group/VSYS
+-o [filename]
+output file requested
+-v
+verbose information (supports –vvv)
+-q
+Quiet (informational output suppressed)
+-f
+CSV input file
+--no-checks
+no integrity checking (will not check if object exists etc)
+--no-locks
+no configuration or commit locks will be taken (lock not required for DIPs for example)
+-t
+test
+-c
+commit 
+-i
+interactive mode
+-a
+Automation mode
+
+Note: Combinations of these options are possible. Check the ‘--help’ output for details.
+
+A list of example use cases is presented below:
+
+Collect Global Objects into file:
+-d <panorama.fqdn> -u admin -p *** -o
+
+Collect Device Group Objects into file:
+-d <panorama.fqdn> -u admin -p *** -o –l ALL
+
+Collect Specific  Device Group Objects into file:
+-d <panorama.fqdn> -u admin -p *** -o –l <device_group_name>
+
+Collect Firewall Objects into file:
+-d <firewall.fqdn> -u admin -p *** -o –l ALL
+
+Create Firewall Shared Objects with checks:
+-d <firewall.fqdn> -u admin -p *** -f csv-standard.csv
+
+Create Firewall Shared Objects without checks:
+-d <firewall.fqdn> -u admin -p *** -f csv-standard.csv --no-checks
+
+Create Firewall ALL Objects with checks:
+-d <firewall.fqdn> -u admin -p *** -f csv-standard.csv –l ALL
+
+Create Specific  Firewall VSYS Objects with checks:
+-d <firewall.fqdn> -u admin -p *** -f csv-standard.csv –l vsys1
+
+Create Specific  Firewall VSYS DIPs without checks or locks:
+-d <firewall.fqdn> -u admin -p *** -f csv-standard.csv –l vsys2 -–no-checks -–no-locks
+
+           Caveats
+
+    • Creating new groups inside new groups in the CSV file is not supported as the order of creation is undetermined. You could achieve this via multiple CSV files and self-managing the import order.
+
+    • Knowledge of the various object trees is helpful as all objects must exist before assignment (e.g. if you intend to use a shared object in a Device Group group it must of course exist first!):
+
+    • When files are output the action column reads ‘__ACTION__’. You will need to edit this if you intend to use the file for import.
+
+    • For rules, you would need to know the VSYS number for the Virtual System.
+
+    • DIPs are per VSYS not shared among the chassis. You need to specify the VSYS in the location field.
+
+    • If the ‘--location’ option is provided, the tool will only act upon matching lines from the CSV file. e.g. Given ‘--l vsys1’, if the CSV file contains location fields containing ‘vsys1’ and ‘vsys2’ then only the lines with ‘vsys1’ will be acted upon.
+
+***************************************************************************************************
+
+Methods of working
+
+The CSV file written by Pandevice will open directly in Microsoft Excel. This makes editing much simpler. Here are a few use cases.
+
+Use Case #1 Migrate objects/policy between Panoramas/Firewalls:
+
+    1. Use the collection method to pull a copy of the objects from a specific Device Group:
+
+	-d <panorama.fqdn> -u admin -p *** -o –l <device_group_name>
+
+    2. Open the file in Microsoft Excel and make any edits you require:
+
+        ◦ Edit ‘op_action’ field to ‘create’.
+        ◦ Edit ‘location’ field to name of Device Group to update.
+        ◦ Remove any unwanted lines (or hash them out).
+        ◦ Save the file.
+        ◦ Exit (don’t save again).
+
+    3. Open the file in Notepad to check the Unicode quotes exist.
+
+    4. If you copy the file to a Unix device run ‘dos2unix’ on the file.
+
+    5. Check configuration status on target device (look for unsaved configuration etc).
+
+    6. Upload the file to the new device using Panmanager in ‘--test’ and ‘-v’ mode.
+
+    7. Check for errors in the log.
+
+    8. Re-run the tool without ‘--test’.
+
+    9. Revert to running configuration if errors are seen else ‘commit’.
+
+
+Use Case #2 Edit Logging Action of rules:
+
+    1. Use the collection method to pull a copy of the objects from a specific Device Group.
+
+	-d <panorama.fqdn> -u admin -p *** -o –l <device_group_name>
+
+    2. 'grep' out the target rules from the file and redirect to a new file.
+
+    3. ‘vi’ this file and do a global search and replace for the ‘log_setting’ field. E.g. 
+
+	:%s/<old log profile name>/<new log profile name>/g
+
+    4. Open file in Microsoft Excel and delete all cells other than the mandatory ones and ‘log_setting’ (or just do this all in Microsoft Excel).
+
+    5. Update to device.
