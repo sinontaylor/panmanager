@@ -72,7 +72,7 @@ __credits__ = ['simon-taylor']
 __maintainer__ = ['simon-taylor']
 __email__ = 'sjtaylor@gmx.com'
 __status__ = "Production"
-__version__ = '1.4'
+__version__ = '1.0'
 __date__ = '27/11/18'
 __revision__ = '29/03/19'
 
