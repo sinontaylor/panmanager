@@ -1,15 +1,4 @@
-Summary
-
-Panmanager is a Python “API Multi Tool” that uses the Pandevice module to leverage the Palo Alto API to both collect existing configurations and issue configuration via a pre-determined CSV format. 
-The idea is very similar to the ofiller/odumper tools used for Check Point object manipulation but extends the supported object types and is only for Palo Alto devices. 
-
-Panmanager supports Panorama Objects and Device Groups and Firewalls.
-
-These two components will be discussed in the following two sections followed by a suggested method of working.
-
-***************************************************************************************************
-CSV Format
-           General Rules
+CSV Format General Rules:
 
 When creating a file in the standard CSV format consider the following:
  
@@ -48,58 +37,57 @@ Note: Any line that is hashed out will be ignored by the tool.
 
 *Note: ‘name’ is not required for Dips.
 
-
-           Mandatory Fields
+Mandatory Fields:
 
 The following ‘vendor’ strings are supported:
 
-palo
+	palo
 
 The following ‘objtype’ strings are supported:
 
-address
-address-group
-service
-service-group
-tag
-dip
-application
-application-group
-security-rule
-nat-rule
-pre-security-rule
-post-security-rule
-pre-nat-rule
-post-nat-rule
-route
+	address
+	address-group
+	service
+	service-group
+	tag
+	dip
+	application
+	application-group
+	security-rule
+	nat-rule
+	pre-security-rule
+	post-security-rule
+	pre-nat-rule
+	post-nat-rule
+	route
 
 Possible future supported ‘objtype’ strings:
 
-virtual-system
-virtual-router
-system
-zone
-interface
-application-filter
-security-profile-grp
+	virtual-system
+	virtual-router
+	system
+	zone
+	interface
+	application-filter
+	security-profile-grp
 
 Note: any expansion to include different rule types e.g.: Application Override, Decryption, DoS Protection, Policy Based Forwarding , QoS etc would require updating Pandevice itself. 
 
 The following ‘op_action’ strings are supported:
 
-create
-delete
-edit
-removefromgroup
-addtogroup
+	create
+	delete
+	edit
+	removefromgroup
+	addtogroup
 
 Note: Possible future supported ‘op_action’ string could be ‘rename’ (as Palo Alto support object renaming).
 
 The following ‘location’ strings are supported:
 
-location
-global
-shared
+	location
+	global
+	shared
 
 The fifth field: ‘name’, is a free text form field and has no restrictions outside of what Pandevice will permit in terms of field length and permitted characters etc.
 
@@ -107,52 +95,52 @@ When creating objects each line will need the following mandatory* attributes in
 
 *Note: ‘name’ is not required for Dips.
 
-palo
-objtype
-op_action
-create
-location
-name
+	palo
+	objtype
+	op_action
+	create
+	location
+	name
 
 Examples:
 palo,address-group,create,vsys1,GLOBAL-LDAP_SERVERS,
 
 In addition to this, each object type has its own set of attributes. These are discussed in the next section.
 
-           Object Attributes
+Object Attributes:
 
 Each object type is presented in its own table with the mandatory attributes marked with asteriks:
 
 Address Objects:
 
-subtype
-ip-netmask
-value
-cidr
-tag
+	subtype
+	ip-netmask
+	value
+	cidr
+	tag
 
-subtype
-ip-range/fqdn
-value
-tag
+	subtype
+	ip-range/fqdn
+	value
+	tag
 
 Examples:
 palo,address,create,vsys1,host_10.10.10.254m32,ip-netmask,,,,10.10.10.254,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
 
 Address Group Objects:
 
-subtype
-static
-value
-members
-tag
-description
+	subtype
+	static
+	value
+	members
+	tag
+	description
 
-subtype
-dynamic
-value
-tag
-description
+	subtype
+	dynamic
+	value
+	tag
+	description
 
 Examples:
 palo,address-group,create,vsys1,GLOBAL-LDAP_SERVERS,static,"['host_10.10.10.254m32']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
@@ -160,11 +148,11 @@ palo,address-group,create,vsys1,GLOBAL-ACS_SERVERS,dynamic,,,,,Cisco Access Cont
 
 Service Objects:
 
-protocol
-destination_port
-source_port
-tag
-description
+	protocol
+	destination_port
+	source_port
+	tag
+	description
 
 Examples:
 palo,service,create,vsys1,TCP-5989,,,,,,,,tcp,,5989,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
@@ -172,26 +160,26 @@ palo,service,create,vsys1,UDP-53-SRC,,,,,,"UDP DNS responses",,udp,53,"53,1023-6
 
 Service Group Objects:
 
-value
-members
-tag
+	value
+	members
+	tag
 
 Examples:
 palo,service-group,create,vsys1,ACS-INBOUND_SERVICES,,"['TCP-5989', 'UDP-53-SRC']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
 
 Tag Objects:
 
-comments
-description
-color
+	comments
+	description
+	color
 
 Examples:
 palo,tag,create,vsys1,GLOBAL-ACS_TAG,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
 
 Dip Objects:
 
-members
-tag
+	members
+	tag
 
 Examples:
 palo,dip,create,vsys1,,,"['192.168.1.1', '192.168.1.2', '192.168.1.3']",,,,,,,,,,GLOBAL-ACS_TAG,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
@@ -201,22 +189,22 @@ Note: for Dips, ‘name’ is actually determined from combining ‘ip-tag’ an
 
 Static Route Objects:
 
-destination
-cidr
-subtype
-nexthop
-interface
-value
-metric
+	destination
+	cidr
+	subtype
+	nexthop
+	interface
+	value
+	metric
 
 Examples:
 palo,route,create,default,route-1-name,ip-address,,,,192.168.1.0/24,,,,,,10.10.10.254,,,,,10,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
 
 Application Group Objects:
 
-value
-members
-tag
+	value
+	members
+	tag
 
 Examples:
 palo,application-group,create,vsys1,SERVER_PROTOCOLS,,"['ssh', 'ms-ds-smb', 'netbios-dg']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
@@ -224,35 +212,35 @@ palo,application-group,create,vsys1,SERVER_PROTOCOLS,,"['ssh', 'ms-ds-smb', 'net
 
 Application Objects:
 
-description
-category
-subcategory
-technology
-risk
-default_type
-default_port
-default_ip_protocol
-default_icmp_type
-default_icmp_code
-parent_app
-timeout
-tcp_timeout
-udp_timeout
-tcp_half_closed_timeout
-tcp_time_wait_timeout
-evasive_behavior
-consume_big_bandwidth
-used_by_malware
-able_to_transfer_file
-has_known_vulnerability
-tunnel_other_application
-tunnel_applications
-prone_to_misuse
-pervasive_use
-file_type_ident
-virus_ident
-data_ident
-tag
+	description
+	category
+	subcategory
+	technology
+	risk
+	default_type
+	default_port
+	default_ip_protocol
+	default_icmp_type
+	default_icmp_code
+	parent_app
+	timeout
+	tcp_timeout
+	udp_timeout
+	tcp_half_closed_timeout
+	tcp_time_wait_timeout
+	evasive_behavior
+	consume_big_bandwidth
+	used_by_malware
+	able_to_transfer_file
+	has_known_vulnerability
+	tunnel_other_application
+	tunnel_applications
+	prone_to_misuse
+	pervasive_use
+	file_type_ident
+	virus_ident
+	data_ident
+	tag
 
 Examples:
 
@@ -261,39 +249,39 @@ palo,application,create,shared,icmp-type-8,,,,,,ICMP Echo Request type-8,,,,,,,,
 
 Security Rule Objects:
 
-action
-rule_action
-application
-category
-data_filtering
-description
-destination
-disable_server_response_inspection
-disabled
-file_blocking
-fromzone
-group
-Hip_profiles
-icmp_unreachable
-log_end
-log_setting
-log_start
-negate_destination
-negate_source
-negate_target
-schedule
-service
-source
-source_user
-spyware
-tag
-target
-tozone
-type
-url_filtering
-virus
-vulnerability
-wildfire_analysis
+	action
+	rule_action
+	application
+	category
+	data_filtering
+	description
+	destination
+	disable_server_response_inspection
+	disabled
+	file_blocking
+	fromzone
+	group
+	Hip_profiles
+	icmp_unreachable
+	log_end
+	log_setting
+	log_start
+	negate_destination
+	negate_source
+	negate_target
+	schedule
+	service
+	source
+	source_user
+	spyware
+	tag
+	target
+	tozone
+	type
+	url_filtering
+	virus
+	vulnerability
+	wildfire_analysis
 
 Examples:
 
@@ -301,49 +289,49 @@ palo,security-rule,create,vsys1,"Permit Any",,,,,,"Ensure that service column is
 
 NAT Rule Objects:
 
-description
-destination
-destination_dynamic_translated_address
-destination_dynamic_translated_distribution
-destination_dynamic_translated_port
-destination_translated_address
-destination_translated_port
-disabled
-fromzone
-ha_binding
-nat_type
-negate_target
-service
-source
-source_translation_address_type
-source_translation_fallback_interface
-source_translation_fallback_ip_address
-source_translation_fallback_ip_type
-source_translation_fallback_translated_addresses
-source_translation_fallback_type
-source_translation_interface
-source_translation_ip_address
-source_translation_static_bi_directional
-source_translation_static_translated_address
-source_translation_translated_addresses
-source_translation_type
-source_translation_type
-tag
-target
-to_interface
-tozone
+	description
+	destination
+	destination_dynamic_translated_address
+	destination_dynamic_translated_distribution
+	destination_dynamic_translated_port
+	destination_translated_address
+	destination_translated_port
+	disabled
+	fromzone
+	ha_binding
+	nat_type
+	negate_target
+	service
+	source
+	source_translation_address_type
+	source_translation_fallback_interface
+	source_translation_fallback_ip_address
+	source_translation_fallback_ip_type
+	source_translation_fallback_translated_addresses
+	source_translation_fallback_type
+	source_translation_interface
+	source_translation_ip_address
+	source_translation_static_bi_directional
+	source_translation_static_translated_address
+	source_translation_translated_addresses
+	source_translation_type
+	source_translation_type
+	tag
+	target
+	to_interface
+	tozone
 
 Examples:
 palo,nat-rule,create,vsys1,"Test NAT",,,,,,,,,,,,,,,,,,,,,,,"['192.168.0.1']",,True,,"['untrust']",,,,,,,,,,,any,"['10.10.10.1']",,,,"['trust']",,,,,,,,,,,ipv4,,,,,,,,,,20.20.20.1,,static-ip,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
 
 Delete Objects:
-** just the standard mandatory fields
+	** just the standard mandatory fields
 
 Examples
 palo,address,delete,vsys1,host_10.10.10.254m32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
 
 Edit Objects:
-**any other fields
+	**any other fields
 
 Examples:
 palo,pre-security-rule,edit,vsys1,test-rule,,,,,,,,,,,,,,,,,,,,"['group test', 'ssh']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
@@ -353,7 +341,7 @@ Note: for editing objects, the tool supports single or multiple attribute edits.
 
 Add/Remove Members:
 
-members
+	members
 
 Examples:
 palo,application-group,add,vsys1,SERVER_PROTOCOLS,,"['oracle-goldengate']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
@@ -362,11 +350,7 @@ palo,application-group,remove,vsys1,SERVER_PROTOCOLS,,"['ping', 'ssh', 'oracle']
 
 ***************************************************************************************************
 
-Panmanager
-           
-Note: Current Tool version is 1.4.
-
-General Rules
+General Rules:
 
 Panmanager is able to perform the actions detailed above providing a correctly formatted CSV file is supplied.
 
@@ -405,7 +389,7 @@ Some details concerning the flow inside the tool:
 
 Operation
 
-There are various CLI options available as explained below (mandatory items in green):
+There are various CLI options available as explained below:
 
 usage: panmanager.py [-h] -d DEVICE -u USERNAME -p
                  PASSWORD [-l LOCATION]
@@ -445,36 +429,7 @@ Automation mode
 
 Note: Combinations of these options are possible. Check the ‘--help’ output for details.
 
-A list of example use cases is presented below:
-
-Collect Global Objects into file:
--d <panorama.fqdn> -u admin -p *** -o
-
-Collect Device Group Objects into file:
--d <panorama.fqdn> -u admin -p *** -o –l ALL
-
-Collect Specific  Device Group Objects into file:
--d <panorama.fqdn> -u admin -p *** -o –l <device_group_name>
-
-Collect Firewall Objects into file:
--d <firewall.fqdn> -u admin -p *** -o –l ALL
-
-Create Firewall Shared Objects with checks:
--d <firewall.fqdn> -u admin -p *** -f csv-standard.csv
-
-Create Firewall Shared Objects without checks:
--d <firewall.fqdn> -u admin -p *** -f csv-standard.csv --no-checks
-
-Create Firewall ALL Objects with checks:
--d <firewall.fqdn> -u admin -p *** -f csv-standard.csv –l ALL
-
-Create Specific  Firewall VSYS Objects with checks:
--d <firewall.fqdn> -u admin -p *** -f csv-standard.csv –l vsys1
-
-Create Specific  Firewall VSYS DIPs without checks or locks:
--d <firewall.fqdn> -u admin -p *** -f csv-standard.csv –l vsys2 -–no-checks -–no-locks
-
-           Caveats
+Caveats:
 
     • Creating new groups inside new groups in the CSV file is not supported as the order of creation is undetermined. You could achieve this via multiple CSV files and self-managing the import order.
 
@@ -490,7 +445,7 @@ Create Specific  Firewall VSYS DIPs without checks or locks:
 
 ***************************************************************************************************
 
-Methods of working
+Use Cases:
 
 The CSV file written by Pandevice will open directly in Microsoft Excel. This makes editing much simpler. Here are a few use cases.
 
