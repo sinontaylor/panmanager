@@ -1,0 +1,349 @@
+CSV Format General Rules:
+
+When creating a file in the standard CSV format consider the following:
+ 
+   - A single file can hold all supported commands for a device (objects/rules/routes/dips).
+
+   - Where necessary, fields must be encapsulated in Unicode quotes ("") in order to support Python CSV modules. E.g. fields containing commas.
+
+   - Fields that may contain multiple values must be written as lists inside square brackets "[]", e.g.
+
+		 "['UNC_5.5.1.0m24', 'UNC_5.5.2.0m24', 'UNC_5.5.3.0m24']" 
+
+	This holds true even for lists of one item. 
+
+Note: this is the Python list format, see Pandevice documentation for attribute variable types (links below per object) showing which fields are lists etc.
+
+   - With the exception of ‘Rules’, the order of the entries inside the CSV file is not important as Panmanager sorts accordingly.
+
+   - The last field ‘ignore_this_end_marker’ is a marker to stop Microsoft Excel from removing empty fields.
+
+   - The CSV header contains 100 fields and is hashed out. This is for information only and is not actually required by the tool for reading but its useful for opening in Microsoft Excel:
+
+"#vendor","objtype","op_action","location","name","subtype","members","ip","netmask","cidr","description","color","protocol","source_port","destination_port","nexthop","tag","value","interface","enable_user_identification","metric","mgmt_profile","zone","rule_action","application","category","data_filtering","destination","disable_server_response_inspection","disabled","file_blocking","fromzone","group","hip_profiles","icmp_unreachable","log_end","log_setting","log_start","negate_destination","negate_source","negate_target","schedule","service","source","source_user","spyware","target","tozone","url_filtering","virus","vulnerability","wildfire_analysis","destination_dynamic_translated_address","destination_dynamic_translated_distribution","destination_dynamic_translated_port","destination_translated_address","destination_translated_port","ha_binding","nat_type","source_translation_address_type","source_translation_fallback_interface","source_translation_fallback_ip_address","source_translation_fallback_ip_type","source_translation_fallback_translated_addresses","source_translation_fallback_type","source_translation_interface","source_translation_ip_address","source_translation_static_bi_directional","source_translation_static_translated_address","source_translation_translated_addresses","source_translation_type","to_interface","category","subcategory","technology","risk","evasive","excessive_bandwidth_use","prone_to_misuse","is_saas","transfers_files","tunnels_other_apps","used_by_malware","has_known_vulnerabilities","pervasive","default_type","parent_app","timeout","tcp_timeout","udp_timeout","tcp_half_closed_timeout","tcp_time_wait_timeout","tunnel_applications","file_type_ident","virus_ident","data_ident","default_port","default_ip_protocol","default_icmp_type","default_icmp_code","ignore_this_end_marker"
+
+Note: Any line that is hashed out will be ignored by the tool.
+
+   - Where possible the fields map directly to the Pandevice Class attributes but in some cases there is field re-use (see tables below for details). Note: this is probably something to remediate in future versions.
+
+   - Each object type (as determined by Pandevice) has its own set of mandatory attributes (see tables below for details).
+
+   - The first five fields are mandatory* and will be explained in the following series of tables:
+   
+   	vendor
+        objtype
+        op_action
+        location
+        name
+
+*Note: ‘name’ is not required for Dips.
+
+Mandatory Fields:
+
+The following ‘vendor’ strings are supported:
+
+	palo
+
+The following ‘objtype’ strings are supported:
+
+	address
+	address-group
+	service
+	service-group
+	tag
+	dip
+	application
+	application-group
+	security-rule
+	nat-rule
+	pre-security-rule
+	post-security-rule
+	pre-nat-rule
+	post-nat-rule
+	route
+
+Possible future supported ‘objtype’ strings:
+
+	virtual-system
+	virtual-router
+	system
+	zone
+	interface
+	application-filter
+	security-profile-grp
+
+Note: any expansion to include different rule types e.g.: Application Override, Decryption, DoS Protection, Policy Based Forwarding , QoS etc would require updating Pandevice itself. 
+
+The following ‘op_action’ strings are supported:
+
+	create
+	delete
+	edit
+	removefromgroup
+	addtogroup
+
+Note: Possible future supported ‘op_action’ string could be ‘rename’ (as Palo Alto support object renaming).
+
+The following ‘location’ strings are supported:
+
+	location
+	global
+	shared
+
+The fifth field: ‘name’, is a free text form field and has no restrictions outside of what Pandevice will permit in terms of field length and permitted characters etc.
+
+When creating objects each line will need the following mandatory* attributes in green:
+
+*Note: ‘name’ is not required for Dips.
+
+	palo
+	objtype
+	op_action
+	create
+	location
+	name
+
+Examples:
+palo,address-group,create,vsys1,GLOBAL-LDAP_SERVERS,
+
+In addition to this, each object type has its own set of attributes. These are discussed in the next section.
+
+Object Attributes:
+
+Each object type is presented in its own table with the mandatory attributes marked with asteriks:
+
+Address Objects:
+
+	subtype
+	ip-netmask
+	value
+	cidr
+	tag
+
+	subtype
+	ip-range/fqdn
+	value
+	tag
+
+Examples:
+palo,address,create,vsys1,host_10.10.10.254m32,ip-netmask,,,,10.10.10.254,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Address Group Objects:
+
+	subtype
+	static
+	value
+	members
+	tag
+	description
+
+	subtype
+	dynamic
+	value
+	tag
+	description
+
+Examples:
+palo,address-group,create,vsys1,GLOBAL-LDAP_SERVERS,static,"['host_10.10.10.254m32']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+palo,address-group,create,vsys1,GLOBAL-ACS_SERVERS,dynamic,,,,,Cisco Access Control System,,,,,,,'GLOBAL-ACS_TAG',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Service Objects:
+
+	protocol
+	destination_port
+	source_port
+	tag
+	description
+
+Examples:
+palo,service,create,vsys1,TCP-5989,,,,,,,,tcp,,5989,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+palo,service,create,vsys1,UDP-53-SRC,,,,,,"UDP DNS responses",,udp,53,"53,1023-65535",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Service Group Objects:
+
+	value
+	members
+	tag
+
+Examples:
+palo,service-group,create,vsys1,ACS-INBOUND_SERVICES,,"['TCP-5989', 'UDP-53-SRC']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Tag Objects:
+
+	comments
+	description
+	color
+
+Examples:
+palo,tag,create,vsys1,GLOBAL-ACS_TAG,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Dip Objects:
+
+	members
+	tag
+
+Examples:
+palo,dip,create,vsys1,,,"['192.168.1.1', '192.168.1.2', '192.168.1.3']",,,,,,,,,,GLOBAL-ACS_TAG,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Note: for Dips, ‘name’ is actually determined from combining ‘ip-tag’ and as such is not required in the CSV file.
+
+
+Static Route Objects:
+
+	destination
+	cidr
+	subtype
+	nexthop
+	interface
+	value
+	metric
+
+Examples:
+palo,route,create,default,route-1-name,ip-address,,,,192.168.1.0/24,,,,,,10.10.10.254,,,,,10,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Application Group Objects:
+
+	value
+	members
+	tag
+
+Examples:
+palo,application-group,create,vsys1,SERVER_PROTOCOLS,,"['ssh', 'ms-ds-smb', 'netbios-dg']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+
+Application Objects:
+
+	description
+	category
+	subcategory
+	technology
+	risk
+	default_type
+	default_port
+	default_ip_protocol
+	default_icmp_type
+	default_icmp_code
+	parent_app
+	timeout
+	tcp_timeout
+	udp_timeout
+	tcp_half_closed_timeout
+	tcp_time_wait_timeout
+	evasive_behavior
+	consume_big_bandwidth
+	used_by_malware
+	able_to_transfer_file
+	has_known_vulnerability
+	tunnel_other_application
+	tunnel_applications
+	prone_to_misuse
+	pervasive_use
+	file_type_ident
+	virus_ident
+	data_ident
+	tag
+
+Examples:
+
+palo,application,create,shared,icmp-type-8,,,,,,ICMP Echo Request type-8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,networking,ip-protocol,network-protocol,1,,,,,,,,,,ident-by-icmp-type,,,,,,,,,,,end
+
+
+Security Rule Objects:
+
+	action
+	rule_action
+	application
+	category
+	data_filtering
+	description
+	destination
+	disable_server_response_inspection
+	disabled
+	file_blocking
+	fromzone
+	group
+	Hip_profiles
+	icmp_unreachable
+	log_end
+	log_setting
+	log_start
+	negate_destination
+	negate_source
+	negate_target
+	schedule
+	service
+	source
+	source_user
+	spyware
+	tag
+	target
+	tozone
+	type
+	url_filtering
+	virus
+	vulnerability
+	wildfire_analysis
+
+Examples:
+
+palo,security-rule,create,vsys1,"Permit Any",,,,,,"Ensure that service column is set to any",,,,,,,,,,,,,allow,"['any']",,,"['any']",,,"['test-local-use']","['any']",,"['any']",,,LOG-PROFILE,,,,,,"['any']","['any']","['any']","['strict']",,"['any']","['default']","['default']","['strict']","['default']",,,,,,,,,,,,,,,,,,,,,"['any']",,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+NAT Rule Objects:
+
+	description
+	destination
+	destination_dynamic_translated_address
+	destination_dynamic_translated_distribution
+	destination_dynamic_translated_port
+	destination_translated_address
+	destination_translated_port
+	disabled
+	fromzone
+	ha_binding
+	nat_type
+	negate_target
+	service
+	source
+	source_translation_address_type
+	source_translation_fallback_interface
+	source_translation_fallback_ip_address
+	source_translation_fallback_ip_type
+	source_translation_fallback_translated_addresses
+	source_translation_fallback_type
+	source_translation_interface
+	source_translation_ip_address
+	source_translation_static_bi_directional
+	source_translation_static_translated_address
+	source_translation_translated_addresses
+	source_translation_type
+	source_translation_type
+	tag
+	target
+	to_interface
+	tozone
+
+Examples:
+palo,nat-rule,create,vsys1,"Test NAT",,,,,,,,,,,,,,,,,,,,,,,"['192.168.0.1']",,True,,"['untrust']",,,,,,,,,,,any,"['10.10.10.1']",,,,"['trust']",,,,,,,,,,,ipv4,,,,,,,,,,20.20.20.1,,static-ip,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Delete Objects:
+	** just the standard mandatory fields
+
+Examples
+palo,address,delete,vsys1,host_10.10.10.254m32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Edit Objects:
+	**any other fields
+
+Examples:
+palo,pre-security-rule,edit,vsys1,test-rule,,,,,,,,,,,,,,,,,,,,"['group test', 'ssh']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+palo,tag,edit,vsys1,GLOBAL-ACS_TAG,,,,,,,Red,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+
+Note: for editing objects, the tool supports single or multiple attribute edits. Simply write the replacement value in the appropriate column. 
+
+Add/Remove Members:
+
+	members
+
+Examples:
+palo,application-group,add,vsys1,SERVER_PROTOCOLS,,"['oracle-goldengate']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+palo,application-group,remove,vsys1,SERVER_PROTOCOLS,,"['ping', 'ssh', 'oracle']",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
