@@ -87,7 +87,7 @@ General Rules:
 
    - The tool will perform the CSV ‘actions’ in a specific order:
 
-	      action_order = ['delete', 'create', 'edit', 'add', 'remove']
+	      action_order = ['delete', 'rename', 'create', 'edit', 'addtogroup', 'removefromgroup']
 
    - For each ‘action’, similarly the objects are updated in a specific order (owing to dependencies):
 
