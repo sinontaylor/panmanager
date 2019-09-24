@@ -1,7 +1,7 @@
 # panmanager
 
 Author: Simon Taylor
-Current Version: 1.0
+Current Version: 1.2
 
 Description:
    - Panmanager is a CLI API tool for Palo Alto firewalls/Panorama object/rule/route management. A pre-defined CSV file format is used as a translation layer for ease of conversion between systems or management of a single system.
@@ -9,17 +9,17 @@ Description:
 Current abilities:
    - print all objects and Security/NAT rules from a Palo Alto firewall or Panorama Device Group to screen
    - write all objects and Security/NAT rules from a Palo Alto firewall or Panorama Device Group to Standard CSV format
-   - create/edit/delete AddressObjects from a Palo Alto firewall or Panorama Device Group
-   - create/edit/delete AddressGroups from a Palo Alto firewall or Panorama Device Group
-   - create/edit/delete ApplicationObjects from a Palo Alto firewall or Panorama Device Group
-   - create/edit/delete ApplicationGroups from a Palo Alto firewall or Panorama Device Group
-   - create/edit/delete ServiceObjects from a Palo Alto firewall or Panorama Device Group
-   - create/edit/delete ServiceGroups from a Palo Alto firewall or Panorama Device Group
-   - create/edit/delete Tags from a Palo Alto firewall or Panorama Device Group
+   - create/edit/delete/rename AddressObjects from a Palo Alto firewall or Panorama Device Group
+   - create/edit/delete/rename AddressGroups from a Palo Alto firewall or Panorama Device Group
+   - create/edit/delete/rename ApplicationObjects from a Palo Alto firewall or Panorama Device Group
+   - create/edit/delete/rename ApplicationGroups from a Palo Alto firewall or Panorama Device Group
+   - create/edit/delete/rename ServiceObjects from a Palo Alto firewall or Panorama Device Group
+   - create/edit/delete/rename ServiceGroups from a Palo Alto firewall or Panorama Device Group
+   - create/edit/delete/rename Tags from a Palo Alto firewall or Panorama Device Group
    - create/edit/delete Dynamic IPs from a Palo Alto firewall
    - create/edit/delete StaticRoutes from a Palo Alto firewall or Panorama Device Group
-   - create/edit/delete SecurityRules from a Palo Alto firewall or Panorama Device Group
-   - create/edit/delete NatRules from a Palo Alto firewall or Panorama Device Group
+   - create/edit/delete/rename SecurityRules from a Palo Alto firewall or Panorama Device Group
+   - create/edit/delete/rename NatRules from a Palo Alto firewall or Panorama Device Group
    - emails log output file to recipients
 
 Future abilities:
