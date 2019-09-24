@@ -35,12 +35,12 @@ Cannot support:
    - Pandevice does not return "dependent apps" for an ApplicationObject so cannot check for dependent apps in this script
 
 Dependencies:
-   - Pandevice, pandevice==0.9.1
+   - Pandevice, pandevice==0.12.0
    - More-itertools, more-itertools==7.0.0
   
 PAN-OS Versions tested:
-   - Panorama, 7.1.11, 8.0.5
-   - Firewall, 7.1.21, 8.0.5
+   - Panorama, 7.1.11, 8.0.5, 8.1.9
+   - Firewall, 7.1.21, 8.0.5, 8.1.9
 
 
 CSV Examples:
