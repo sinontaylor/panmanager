@@ -29,6 +29,7 @@ Future abilities:
    - create/edit/delete SecurityProfileGroups from a Palo Alto firewall or Panorama Device Group
    - create/edit/delete ApplicationFilters from a Palo Alto firewall or Panorama Device Group
    - output support for condition where total registered-ips is >500
+   - move rules before/after specified rule UUID 
 
 Cannot support:
    - Pandevice does not return "dependent apps" for an ApplicationObject so cannot check for dependent apps in this script
