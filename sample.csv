@@ -6,8 +6,8 @@ palo,address,edit,vsys1,host_10.10.10.1m32,,,,,,change the description,,,,,,,,,,
 palo,address-group,create,vsys1,TEST-SERVERS-DYNAMIC,dynamic,,,,,This is a dynamic address group,,,,,,,'TEST-TAG',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
 palo,address-group,delete,vsys1,TEST-SERVERS-DYNAMIC,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
 palo,address-group,create,vsys1,TEST-SERVERS-STATIC,static,"['host_10.10.10.1m32', 'host_10.10.10.2m32']",,,,This is a static address group,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
-palo,address-group,add,vsys1,TEST-SERVERS-STATIC,,['host-10.10.10.3m32'],,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
-palo,address-group,remove,vsys1,TEST-SERVERS-STATIC,,['host_10.10.10.2m32'],,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+palo,address-group,addtogroup,vsys1,TEST-SERVERS-STATIC,,['host-10.10.10.3m32'],,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+palo,address-group,removefromgroup,vsys1,TEST-SERVERS-STATIC,,['host_10.10.10.2m32'],,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
 palo,application,create,vsys1,Test-Application,,,,,,This is an application,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,business-systems,general-business,network-protocol,1,,,,,,,,,,port,,,,,,,,,,,"['tcp/dynamic', 'udp/dynamic']",,,,end
 palo,application-group,create,vsys1,Test-Application-Group,,"['mount', 'ndmp', 'nfs', 'portmapper', 'rpc', 'snapmirror']",,,,This is an application group,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
 palo,service,create,vsys1,TCP-1111,,,,,,,,tcp,,1111,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
@@ -23,3 +23,4 @@ palo,pre-security-rule,create,<device_group_name>,rule two,interzone,,,,,Device 
 palo,post-security-rule,create,<device_group_name>,rule four,interzone,,,,,Device Group test rule,,,,,,,,,,,,,drop,['any'],,,['any'],,,,['any'],,['any'],,,LOGGING-PROFILE,,,,FALSE,,['any'],['any'],['any'],,,['any'],,,,,,,,,,,,,,,,,,,,,,,,,['any'],,,,,,,,,,,,,,,,,,,,,,,,,,,,end
 palo,post-security-rule,create,<device_group_name>,rule three,interzone,,,,Device Group test rule,Device Group test rule,,,,,,,,,,,,allow,['any'],,,['any'],,,,['any'],,['any'],,FALSE,,,,,FALSE,,['any'],['any'],['any'],,,['any'],,,,,,,,,,,,,,,,,,,,,,,,,['any'],,,,,,,,,,,,,,,,,,,,,,,,,,,,end,end
 palo,pre-nat-rule,create,<device_group_name>,Nat rule 1,,,,,,Device Group NAT Rule,,,,,,,,,,,,,drop,['any'],,,['any'],,TRUE,,['untrust'],,['trust'],,,LOGGING-PROFILE,,,,FALSE,,['any'],['any'],['any'],,,['any'],,,,,,,,,,,,,,,,,,,,,,,,,['any'],,,,,,,,,,,,,,,,,,,,,,,,,,,,end
+palo,address,rename,vsys1,sillynamedhost,,,,,,,,,,,,,mynamingconventionname,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,end
