@@ -39,8 +39,8 @@ Dependencies:
    - More-itertools, more-itertools==7.0.0
   
 PAN-OS Versions tested:
-   - Panorama, 7.1.11, 8.0.5, 8.1.9
-   - Firewall, 7.1.21, 8.0.5, 8.1.9
+   - Panorama, 7.1.x, 8.0.x, 8.1.x
+   - Firewall, 7.1.x, 8.0.x, 8.1.x
 
 
 CSV Examples:
