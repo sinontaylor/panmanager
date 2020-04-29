@@ -1,7 +1,7 @@
 # panmanager
 
 Author: Simon Taylor
-Current Version: 1.2
+Current Version: 1.4
 
 Description:
    - Panmanager is a CLI API tool for Palo Alto firewalls/Panorama object/rule/route management. A pre-defined CSV file format is used as a translation layer for ease of conversion between systems or management of a single system.
@@ -39,8 +39,8 @@ Dependencies:
    - More-itertools, more-itertools==7.0.0
   
 PAN-OS Versions tested:
-   - Panorama, 7.1.x, 8.0.x, 8.1.x
-   - Firewall, 7.1.x, 8.0.x, 8.1.x
+   - Panorama, 7.1.x, 8.0.x, 8.1.x, 9.0.4
+   - Firewall, 7.1.x, 8.0.x, 8.1.x, 9.0.4
 
 
 CSV Examples:
