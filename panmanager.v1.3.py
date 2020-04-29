@@ -1,4 +1,4 @@
-#!/usr/bin/python3.7
+#!/usr/bin/env python3
 
 ####################################################################################
 #
@@ -88,7 +88,7 @@ __revision__ = '12/09/19'
 __email_domain__ = '@example.com'
 __api_notification_email__ = 'alerts' + __email_domain__
 __mail_server__ = '169.254.1.1'
-__from_address__ = 'apiserver'  + __email_domain__
+__from_address__ = 'apiserver' + __email_domain__
 
 ####################################################################################
 
@@ -103,6 +103,7 @@ import ipaddress
 import time
 import re
 import smtplib
+import xml.etree.ElementTree as ET
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
@@ -148,7 +149,7 @@ from pandevice.policies import Rulebase
 
 # this next line needed to 'refreshall' Templates
 from pandevice import ha
-from pprint import pprint
+
 ####################################################################################
 #
 # Custom Classes
@@ -1093,7 +1094,6 @@ def edit_palo_object(args, logger, o, object_names, devtype, subclass, tree, dev
     # if object not found, create an object of subclass and try to refresh it from the live device. If found then continue as above, else fail
 
     name = o.name
-    t = o.type
     object = tree.find(o.name, subclass)
     o.__dict__.pop('type', None)
     o.__dict__.pop('name', None)
@@ -1113,14 +1113,14 @@ def edit_palo_object(args, logger, o, object_names, devtype, subclass, tree, dev
         if not args.test:
             object.create()
             if not args.quiet:
-                logger.info("{} \'{}\': Successfully edited {} \'{}\'. OK!".format(devtype, device, t, name))
+                logger.info("{} \'{}\': Successfully edited {} \'{}\'. OK!".format(devtype, device, o.type, name))
         else:
             if not args.quiet:
-                logger.info("{} \'{}\': TEST MODE - not editing {} \'{}\'. TEST!".format(devtype, device, t, name))
+                logger.info("{} \'{}\': TEST MODE - not editing {} \'{}\'. TEST!".format(devtype, device, o.type, o.name))
     except Exception as e:
         logger.error("{}".format(neutralise_newlines(repr(e), args, logger)))
         failures.add(name)
-        logger.warn("{} \'{}\': Cannot edit {} \'{}\'. FAILED!".format(devtype, device, t, name))
+        logger.warn("{} \'{}\': Cannot edit {} \'{}\'. FAILED!".format(devtype, device, o.type, name))
 
 ####################################################################################
 #
@@ -1881,9 +1881,6 @@ def read_dbedit_csv(args, logger, filename, emails, email_subject, email_message
 
                     # append object 'o' to list
                     if o is not None:
-                        if args.verbose == 3: 
-                            print(dir(o))
-                            print(vars(o))
                         # you will have to return a different set of objects here for pre/post-rules as no way to differentiate later
                         if row[op_action] == 'delete':
                             dbedit_processed_objects[row[vendor]][row[location]][row[op_action]][row[type]].append(o)
@@ -4465,6 +4462,17 @@ def main():
                 send_email(email_subject, email + __email_domain__, logfile, email_message, args, logger)
             sys.exit(1)
 
+        response = pano.op('show rule-hit-count device-group usash11-01fwh01-dg pre-rulebase security rules all')
+        #response = pano.op('show system info')
+        #tim = response.find('./result/system/hostname').text
+        #tim = response.find('./result/rule-hit-count/device-group/entry/rule-base/entry/rules/entry/rule-state').text
+        #print(tim)
+        #tree = ET.parse(response)
+        #root = tree.getroot()
+        #for child in root:
+        #    print(child.tag, child.attrib)
+        sys.exit(1)
+
         ###############################################################################
         #
         # Take Configuration/Commit Locks
@@ -4611,13 +4619,12 @@ def main():
                     ###############################################################################
 
                     if args.verbose == 2:
-                        pass
-                        #print_palo_objects_list(child.name + ' All Objects', all_dg_objects, logger)
-                        #print_palo_objects_list(child.name + ' Pre-Security Rules', pre_sec_rules, logger)
-                        #print_palo_objects_list(child.name + ' Post-Security Rules', post_sec_rules, logger)
-                        #print_palo_objects_list(child.name + ' Pre-Security Rules', pre_nat_rules, logger)
-                        #print_palo_objects_list(child.name + ' Post-NAT Rules', post_nat_rules, logger)
-                        #print_palo_objects_list(child.name + ' Device Group Zones', device_group_zones, logger)
+                        print_palo_objects_list(child.name + ' All Objects', all_dg_objects, logger)
+                        print_palo_objects_list(child.name + ' Pre-Security Rules', pre_sec_rules, logger)
+                        print_palo_objects_list(child.name + ' Post-Security Rules', post_sec_rules, logger)
+                        print_palo_objects_list(child.name + ' Pre-Security Rules', pre_nat_rules, logger)
+                        print_palo_objects_list(child.name + ' Post-NAT Rules', post_nat_rules, logger)
+                        print_palo_objects_list(child.name + ' Device Group Zones', device_group_zones, logger)
 
                     ###############################################################################
                     #
@@ -4672,13 +4679,6 @@ def main():
                             dg_nat_names = set()
                             dg_interface_names = set()
                             dg_route_names = set()
-                            dg_tag_names = set ()
-                            dg_address_names = set ()
-                            dg_address_group_names = set ()
-                            dg_service_names = set ()
-                            dg_service_group_names = set ()
-                            dg_application_names = set ()
-                            dg_application_group_names = set ()
 
                         ###############################################################################
                         #
@@ -4744,7 +4744,7 @@ def main():
                             #update_objects(renames, child, 'Device Group', child.name, action, args, logger, filename, failures, dg_tag_names, dg_address_names, dg_address_group_names, dg_service_names, dg_service_group_names, dg_application_names, dg_application_group_names, dg_rule_names, dg_zone_names, dg_nat_names, dg_interface_names, dg_route_names, null_set)
 
                             # perform Edits
-                            update_objects(edits, child, 'Device Group', child.name, action, args, logger, filename, failures, dg_tag_names, dg_address_names, dg_address_group_names, dg_service_names, dg_service_group_names, dg_application_names, dg_application_group_names, dg_rule_names, dg_zone_names, dg_nat_names, dg_interface_names, dg_route_names, null_set)
+                            #update_objects(edits, child, 'Device Group', child.name, action, args, logger, filename, failures, dg_tag_names, dg_address_names, dg_address_group_names, dg_service_names, dg_service_group_names, dg_application_names, dg_application_group_names, dg_rule_names, dg_zone_names, dg_nat_names, dg_interface_names, dg_route_names, null_set)
 
                             # perform Group Modifications
                             #update_objects(modifications, child, 'Device Group', child.name, action, args, logger, filename, failures, dg_tag_names, dg_address_names, dg_address_group_names, dg_service_names, dg_service_group_names, dg_application_names, dg_application_group_names, dg_rule_names, dg_zone_names, dg_nat_names, dg_interface_names, dg_route_names, null_set)

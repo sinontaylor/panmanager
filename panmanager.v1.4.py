@@ -66,6 +66,7 @@
 #
 # 1.1 write zones into file
 # 1.2 added rename op_action
+# 1.4 added device group routes
 #
 ####################################################################################
 
@@ -75,9 +76,9 @@ __credits__ = ['simon-taylor']
 __maintainer__ = ['simon-taylor']
 __email__ = 'sjtaylor@gmx.com'
 __status__ = "Production"
-__version__ = '1.2'
+__version__ = '1.4'
 __date__ = '27/11/18'
-__revision__ = '12/09/19'
+__revision__ = '28/04/20'
 
 ####################################################################################
 #
@@ -149,6 +150,7 @@ from pandevice.policies import Rulebase
 # this next line needed to 'refreshall' Templates
 from pandevice import ha
 from pprint import pprint
+
 ####################################################################################
 #
 # Custom Classes
@@ -241,7 +243,7 @@ def update_objects(objects, tree, devtype, devname, action, args, logger, filena
                         if issubclass(type(grandchild), PostRulebase):
                             rename_palo_object(args, logger, o, existing_nat_names, devtype, NatRule, grandchild, filename, failures)
                 else:
-                    logger.warn('update_objects - RenameObject - Unsupported type \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.type, o.name))
+                    logger.warning('update_objects - RenameObject - Unsupported type \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.type, o.name))
             elif issubclass(type(o), DeleteObject):
                 if o.type == 'address':
                     # remove from all AddressGroup first!
@@ -294,7 +296,7 @@ def update_objects(objects, tree, devtype, devname, action, args, logger, filena
                 elif o.type == 'route':
                     delete_palo_object(args, logger, o, null_set, devtype, StaticRoute, tree, filename, failures)
                 else:
-                    logger.warn('update_objects - DeleteObject - Unsupported type \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.type, o.name))
+                    logger.warning('update_objects - DeleteObject - Unsupported type \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.type, o.name))
             elif issubclass(type(o), EditObject):
                 if o.type == 'address':
                     edit_palo_object(args, logger, o, available_address_names, devtype, AddressObject, tree, filename, failures)
@@ -335,7 +337,7 @@ def update_objects(objects, tree, devtype, devname, action, args, logger, filena
                 elif o.type == 'route':
                     edit_palo_object(args, logger, o, null_set, devtype, StaticRoute, tree, filename, failures)
                 else:
-                    logger.warn('update_objects - EditObject - Unsupported type \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.type, o.name))
+                    logger.warning('update_objects - EditObject - Unsupported type \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.type, o.name))
             elif issubclass(type(o), ModifyGroup):
                 if o.type == 'address-group':
                     if o.action == 'addtogroup':
@@ -343,23 +345,23 @@ def update_objects(objects, tree, devtype, devname, action, args, logger, filena
                     elif o.action == 'removefromgroup':
                         remove_from_palo_group(args, logger, o, available_address_group_names, available_address_names, devtype, AddressGroup, tree, filename, failures)
                     else:
-                        logger.warn('update_objects - ModifyGroup - Unsupported action \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.action, o.name))
+                        logger.warning('update_objects - ModifyGroup - Unsupported action \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.action, o.name))
                 elif o.type == 'service-group':
                     if o.action == 'addtogroup':
                         add_to_palo_group(args, logger, o, available_service_group_names, available_service_names, devtype, ServiceGroup, tree, filename, failures)
                     elif o.action == 'removefromgroup':
                         remove_from_palo_group(args, logger, o, available_service_group_names, available_service_names, devtype, ServiceGroup, tree, filename, failures)
                     else:
-                        logger.warn('update_objects - ModifyGroup - Unsupported action \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.action, o.name))
+                        logger.warning('update_objects - ModifyGroup - Unsupported action \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.action, o.name))
                 elif o.type == 'application-group':
                     if o.action == 'addtogroup':
                         add_to_palo_group(args, logger, o, available_application_group_names, available_application_names, devtype, ApplicationGroup, tree, filename, failures)
                     elif o.action == 'removefromgroup':
                         remove_from_palo_group(args, logger, o, available_application_group_names, available_application_names, devtype, ApplicationGroup, tree, filename, failures)
                     else:
-                        logger.warn('update_objects - ModifyGroup - Unsupported action \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.action, o.name))
+                        logger.warning('update_objects - ModifyGroup - Unsupported action \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.action, o.name))
                 else:
-                    logger.warn('update_objects - ModifyGroup - Unsupported type \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.type, o.name))
+                    logger.warning('update_objects - ModifyGroup - Unsupported type \'{}\' for \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(o.type, o.name))
             else:
                 if action == 'create':
                     if issubclass(type(o), AddressGroup):
@@ -367,7 +369,7 @@ def update_objects(objects, tree, devtype, devname, action, args, logger, filena
                     elif issubclass(type(o), AddressObject):
                         create_palo_address(args, logger, o, available_address_names, available_tag_names, devtype, tree, filename, failures)
                     elif issubclass(type(o), ApplicationFilter):
-                        logger.warn('Yet to support creation of ApplicationFilter objects')
+                        logger.warning('Yet to support creation of ApplicationFilter objects')
                     elif issubclass(type(o), ApplicationGroup):
                         create_palo_application_group(args, logger, o, available_application_group_names, available_application_names, devtype, tree, filename, failures)
                     elif issubclass(type(o), ApplicationObject):
@@ -390,9 +392,9 @@ def update_objects(objects, tree, devtype, devname, action, args, logger, filena
                     if issubclass(type(o), Dip):
                         delete_palo_dip(args, logger, o, existing_dip_names, devtype, tree, filename, failures)
                 else:
-                    logger.warn('update_objects: Unsupported action \'{}\' for type \'{}\' name \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(action, str(type(o)), o.name))
+                    logger.warning('update_objects: Unsupported action \'{}\' for type \'{}\' name \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(action, str(type(o)), o.name))
     #else:
-        #logger.warn('update_objects: Nothing to Update {} (contact your nearest Security Engineering resource). skipping...'.format(action))
+        #logger.warning('update_objects: Nothing to Update {} (contact your nearest Security Engineering resource). skipping...'.format(action))
 
 ####################################################################################
 #
@@ -416,17 +418,17 @@ def create_palo_nat(args, logger, new_nat_rule, rules, zones, addresses, address
         if new_nat_rule.name not in rules:
             for zone in new_nat_rule.fromzone:
                 if zone not in zones:
-                    logger.warn("{} \'{}\': Not attempting to create NatRule \'{}\'. Invalid fromzone \'{}\'! Skipping...".format(devtype, device, new_nat_rule, zone))
+                    logger.warning("{} \'{}\': Not attempting to create NatRule \'{}\'. Invalid fromzone \'{}\'! Skipping...".format(devtype, device, new_nat_rule, zone))
                     break
             else:
                 for source in new_nat_rule.source:
                     if source not in addresses and source not in address_groups:
-                        logger.warn("{} \'{}\': Not attempting to create NatRule \'{}\'. Invalid source \'{}\'! Skipping...".format(devtype, device, new_nat_rule, source))
+                        logger.warning("{} \'{}\': Not attempting to create NatRule \'{}\'. Invalid source \'{}\'! Skipping...".format(devtype, device, new_nat_rule, source))
                         break
                 else:
                     for zone in new_nat_rule.tozone:
                         if zone not in zones:
-                            logger.warn("{} \'{}\': Not attempting to create NatRule \'{}\'. Invalid tozone \'{}\'! Skipping...".format(devtype, device, new_nat_rule, zone))
+                            logger.warning("{} \'{}\': Not attempting to create NatRule \'{}\'. Invalid tozone \'{}\'! Skipping...".format(devtype, device, new_nat_rule, zone))
                             break
                     else:
                         if new_nat_rule.service in services or new_nat_rule.service in service_groups:
@@ -434,18 +436,18 @@ def create_palo_nat(args, logger, new_nat_rule, rules, zones, addresses, address
                                 if new_nat_rule.tag is not None:
                                     for tag in new_nat_rule.tag:
                                         if tag not in tags:
-                                            logger.warn("{} \'{}\': Not attempting to create NatRule \'{}\'. Invalid tag \'{}\'! Skipping...".format(devtype, device, new_nat_rule, tag))
+                                            logger.warning("{} \'{}\': Not attempting to create NatRule \'{}\'. Invalid tag \'{}\'! Skipping...".format(devtype, device, new_nat_rule, tag))
                                             break
                                     else:
                                         create_palo_object(args, logger, new_nat_rule, 'NatRule', rulebase, device, devtype, failures)
                                 else:
                                     create_palo_object(args, logger, new_nat_rule, 'NatRule', rulebase, device, devtype, failures)
                             else:
-                                logger.warn("{} \'{}\': Not attempting to create NatRule \'{}\'. Invalid interface \'{}\'! Skipping...".format(devtype, device, new_nat_rule, new_nat_rule.to_interface))
+                                logger.warning("{} \'{}\': Not attempting to create NatRule \'{}\'. Invalid interface \'{}\'! Skipping...".format(devtype, device, new_nat_rule, new_nat_rule.to_interface))
                         else:
-                            logger.warn("{} \'{}\': Not attempting to create NatRule \'{}\'. Invalid service \'{}\'! Skipping...".format(devtype, device, new_nat_rule, new_nat_rule.service))
+                            logger.warning("{} \'{}\': Not attempting to create NatRule \'{}\'. Invalid service \'{}\'! Skipping...".format(devtype, device, new_nat_rule, new_nat_rule.service))
         else:
-            logger.warn("{} \'{}\': Not attempting to create NatRule \'{}\'. Already exists! Skipping...".format(devtype, device, new_nat_rule))
+            logger.warning("{} \'{}\': Not attempting to create NatRule \'{}\'. Already exists! Skipping...".format(devtype, device, new_nat_rule))
     else:
         if not args.quiet:
             logger.info("{} \'{}\': \'--no-checks\' requested while attempting to create NatRule \'{}\'. Watch for errors...".format(devtype, device, new_nat_rule))
@@ -468,45 +470,45 @@ def create_palo_rule(args, logger, new_sec_rule, rules, zones, addresses, addres
         if new_sec_rule.name not in rules:
             for zone in new_sec_rule.fromzone:
                 if zone not in zones:
-                    logger.warn("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid fromzone \'{}\'! Skipping...".format(devtype, device, new_sec_rule, zone))
+                    logger.warning("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid fromzone \'{}\'! Skipping...".format(devtype, device, new_sec_rule, zone))
                     break
             else:
                 for source in new_sec_rule.source:
                     if source not in addresses and source not in address_groups:
-                        logger.warn("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid source \'{}\'! Skipping...".format(devtype, device, new_sec_rule, source))
+                        logger.warning("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid source \'{}\'! Skipping...".format(devtype, device, new_sec_rule, source))
                         break
                 else:
                     for zone in new_sec_rule.tozone:
                         if zone not in zones:
-                            logger.warn("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid tozone \'{}\'! Skipping...".format(devtype, device, new_sec_rule, zone))
+                            logger.warning("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid tozone \'{}\'! Skipping...".format(devtype, device, new_sec_rule, zone))
                             break
                     else:
                         for destination in new_sec_rule.destination:
                             if destination not in addresses and destination not in address_groups:
-                                logger.warn("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid destination \'{}\'! Skipping...".format(devtype, device, new_sec_rule, destination))
+                                logger.warning("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid destination \'{}\'! Skipping...".format(devtype, device, new_sec_rule, destination))
                                 break
                         else:
                             for application in new_sec_rule.application:
                                 if application not in applications and application not in application_groups:
-                                    logger.warn("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid application \'{}\'! Skipping...".format(devtype, device, new_sec_rule, application))
+                                    logger.warning("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid application \'{}\'! Skipping...".format(devtype, device, new_sec_rule, application))
                                     break
                             else:
                                 for service in new_sec_rule.service:
                                     if service not in services and service not in service_groups:
-                                        logger.warn("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid service \'{}\'! Skipping...".format(devtype, device, new_sec_rule, service))
+                                        logger.warning("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid service \'{}\'! Skipping...".format(devtype, device, new_sec_rule, service))
                                         break
                                 else:
                                     if new_sec_rule.tag is not None:
                                         for tag in new_sec_rule.tag:
                                             if tag not in tags:
-                                                logger.warn("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid tag \'{}\'! Skipping...".format(devtype, device, new_sec_rule, tag))
+                                                logger.warning("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Invalid tag \'{}\'! Skipping...".format(devtype, device, new_sec_rule, tag))
                                                 break
                                         else:
                                             create_palo_object(args, logger, new_sec_rule, 'SecurityRule', rulebase, device, devtype, failures)
                                     else:
                                         create_palo_object(args, logger, new_sec_rule, 'SecurityRule', rulebase, device, devtype, failures)
         else:
-            logger.warn("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Already exists! Skipping...".format(devtype, device, new_sec_rule))
+            logger.warning("{} \'{}\': Not attempting to create SecurityRule \'{}\'. Already exists! Skipping...".format(devtype, device, new_sec_rule))
     else:
         create_palo_object(args, logger, new_sec_rule, 'SecurityRule', rulebase, device, devtype, failures)
 
@@ -518,7 +520,7 @@ def create_palo_application(args, logger, new_application, applications, devtype
         if new_application.name not in applications:
             create_palo_object(args, logger, new_application, 'Application', tree, device, devtype, failures)
         else:
-            logger.warn("{} \'{}\': Not attempting to create Application \'{}\'. Already exists! Skipping...".format(devtype, device, new_application))
+            logger.warning("{} \'{}\': Not attempting to create Application \'{}\'. Already exists! Skipping...".format(devtype, device, new_application))
     else:
         create_palo_object(args, logger, new_application, 'Application', tree, device, devtype, failures)
 
@@ -534,15 +536,15 @@ def create_palo_application_group(args, logger, new_application_group, applicati
                 # check members
                 for appid in new_application_group.value:
                     if appid not in applications:
-                        logger.warn("{} \'{}\': Not attempting to create ApplicationGroup \'{}\'. Missing member \'{}\'! Skipping...".format(devtype, device, new_application_group, appid))
+                        logger.warning("{} \'{}\': Not attempting to create ApplicationGroup \'{}\'. Missing member \'{}\'! Skipping...".format(devtype, device, new_application_group, appid))
                         break
                 else:
                     # here we can check for dependent apps
                     create_palo_object(args, logger, new_application_group, 'ApplicationGroup', tree, device, devtype, failures)
             else:
-                logger.warn("{} \'{}\': Not attempting to create ApplicationGroup \'{}\'. No members! Skipping...".format(devtype, device, new_application_group))
+                logger.warning("{} \'{}\': Not attempting to create ApplicationGroup \'{}\'. No members! Skipping...".format(devtype, device, new_application_group))
         else:
-            logger.warn("{} \'{}\': Not attempting to create ApplicationGroup \'{}\'. Already exists! Skipping...".format(devtype, device, new_application_group))
+            logger.warning("{} \'{}\': Not attempting to create ApplicationGroup \'{}\'. Already exists! Skipping...".format(devtype, device, new_application_group))
     else:
         create_palo_object(args, logger, new_application_group, 'ApplicationGroup', tree, device, devtype, failures)
 
@@ -558,7 +560,7 @@ def create_palo_address_group(args, logger, new_address_group, address_groups, t
             if new_address_group.tag:
                 for tag in new_address_group.tag:
                     if tag not in tags:
-                        logger.warn("{} \'{}\': Not attempting to create AddressGroup \'{}\'. Missing tag \'{}\'! Skipping...".format(devtype, device, new_address_group, tag))
+                        logger.warning("{} \'{}\': Not attempting to create AddressGroup \'{}\'. Missing tag \'{}\'! Skipping...".format(devtype, device, new_address_group, tag))
                         break
                 else:
                     # all tags were found, check for group type
@@ -566,7 +568,7 @@ def create_palo_address_group(args, logger, new_address_group, address_groups, t
                         # we are a static group, check members
                         for member in new_address_group.static_value:
                             if member not in addresses and member not in address_groups:
-                                logger.warn("{} \'{}\': Not attempting to create AddressGroup \'{}\'. Missing member \'{}\'! Skipping...".format(devtype, device, new_address_group, member))
+                                logger.warning("{} \'{}\': Not attempting to create AddressGroup \'{}\'. Missing member \'{}\'! Skipping...".format(devtype, device, new_address_group, member))
                                 break
                         else:
                             create_palo_object(args, logger, new_address_group, 'AddressGroup', tree, device, devtype, failures)
@@ -577,7 +579,7 @@ def create_palo_address_group(args, logger, new_address_group, address_groups, t
                         li = list(pattern.split("and"))
                         for item in li:
                             if item not in tags:
-                                logger.warn("{} \'{}\': Not attempting to create AddressGroup \'{}\'. Missing filter \'{}\'! Skipping...".format(devtype, device, new_address_group, pattern))
+                                logger.warning("{} \'{}\': Not attempting to create AddressGroup \'{}\'. Missing filter \'{}\'! Skipping...".format(devtype, device, new_address_group, pattern))
                                 break
                         else:
                             create_palo_object(args, logger, new_address_group, 'AddressGroup', tree, device, devtype, failures)
@@ -587,7 +589,7 @@ def create_palo_address_group(args, logger, new_address_group, address_groups, t
                     # we are a static group, check members
                     for member in new_address_group.static_value:
                         if member not in addresses and member not in address_groups:
-                            logger.warn("{} \'{}\': Not attempting to create AddressGroup \'{}\'. Missing member \'{}\'! Skipping...".format(devtype, device, new_address_group, member))
+                            logger.warning("{} \'{}\': Not attempting to create AddressGroup \'{}\'. Missing member \'{}\'! Skipping...".format(devtype, device, new_address_group, member))
                             break
                     else:
                         create_palo_object(args, logger, new_address_group, 'AddressGroup', tree, device, devtype, failures)
@@ -598,12 +600,12 @@ def create_palo_address_group(args, logger, new_address_group, address_groups, t
                     li = list(pattern.split("and"))
                     for item in li:
                         if item not in tags:
-                            logger.warn("{} \'{}\': Not attempting to create AddressGroup \'{}\'. Missing filter \'{}\'! Skipping...".format(devtype, device, new_address_group, pattern))
+                            logger.warning("{} \'{}\': Not attempting to create AddressGroup \'{}\'. Missing filter \'{}\'! Skipping...".format(devtype, device, new_address_group, pattern))
                             break
                     else:
                         create_palo_object(args, logger, new_address_group, 'AddressGroup', tree, device, devtype, failures)
         else:
-            logger.warn("{} \'{}\': Not attempting to create AddressGroup \'{}\'. Already exists! Skipping...".format(devtype, device, new_address_group))
+            logger.warning("{} \'{}\': Not attempting to create AddressGroup \'{}\'. Already exists! Skipping...".format(devtype, device, new_address_group))
     else:
         create_palo_object(args, logger, new_address_group, 'AddressGroup', tree, device, devtype, failures)
 
@@ -619,7 +621,7 @@ def create_palo_address(args, logger, new_address, addresses, tags, devtype, tre
             if new_address.tag:
                 for tag in new_address.tag:
                     if tag not in tags:
-                        logger.warn("{} \'{}\': Not attempting to create AddressObject \'{}\'. Missing tag \'{}\'! Skipping...".format(devtype, device, new_address, tag))
+                        logger.warning("{} \'{}\': Not attempting to create AddressObject \'{}\'. Missing tag \'{}\'! Skipping...".format(devtype, device, new_address, tag))
                         break
                 else:
                     # all tags were found, create AddressObject
@@ -628,7 +630,7 @@ def create_palo_address(args, logger, new_address, addresses, tags, devtype, tre
                 # create AddressObject
                 create_palo_object(args, logger, new_address, 'AddressObject', tree, device, devtype, failures)
         else:
-            logger.warn("{} \'{}\': Not attempting to create AddressObject \'{}\'. Already exists! Skipping...".format(devtype, device, new_address))
+            logger.warning("{} \'{}\': Not attempting to create AddressObject \'{}\'. Already exists! Skipping...".format(devtype, device, new_address))
     else:
         create_palo_object(args, logger, new_address, 'AddressObject', tree, device, devtype, failures)
 
@@ -644,7 +646,7 @@ def create_palo_service(args, logger, new_service, services, tags, devtype, tree
             if new_service.tag:
                 for tag in new_service.tag:
                     if tag not in tags:
-                        logger.warn("{} \'{}\': Not attempting to create ServiceObject \'{}\'. Missing tag \'{}\'! Skipping...".format(devtype, device, new_service, tag))
+                        logger.warning("{} \'{}\': Not attempting to create ServiceObject \'{}\'. Missing tag \'{}\'! Skipping...".format(devtype, device, new_service, tag))
                         break
                 else:
                     # all tags were found, create ServiceObject
@@ -653,7 +655,7 @@ def create_palo_service(args, logger, new_service, services, tags, devtype, tree
                 # create ServiceObject
                 create_palo_object(args, logger, new_service, 'ServiceObject', tree, device, devtype, failures)
         else:
-            logger.warn("{} \'{}\': Not attempting to create ServiceObject \'{}\'. Already exists! Skipping...".format(devtype, device, new_service))
+            logger.warning("{} \'{}\': Not attempting to create ServiceObject \'{}\'. Already exists! Skipping...".format(devtype, device, new_service))
     else:
         create_palo_object(args, logger, new_service, 'ServiceObject', tree, device, devtype, failures)
 
@@ -669,32 +671,32 @@ def create_palo_service_group(args, logger, new_service_group, service_groups, t
             if new_service_group.tag:
                 for tag in new_service_group.tag:
                     if tag not in tags:
-                        logger.warn("{} \'{}\': Not attempting to create ServiceGroup \'{}\'. Missing tag \'{}\'! Skipping...".format(devtype, device, new_service_group, tag))
+                        logger.warning("{} \'{}\': Not attempting to create ServiceGroup \'{}\'. Missing tag \'{}\'! Skipping...".format(devtype, device, new_service_group, tag))
                         break
                 else:
                     # all tags were found, check for group members
                     if new_service_group.value:
                         for member in new_service_group.value:
                             if member not in services:
-                                logger.warn("{} \'{}\': Not attempting to create ServiceGroup \'{}\'. Missing member \'{}\'! Skipping...".format(devtype, device, new_service_group, member))
+                                logger.warning("{} \'{}\': Not attempting to create ServiceGroup \'{}\'. Missing member \'{}\'! Skipping...".format(devtype, device, new_service_group, member))
                                 break
                         else:
                             create_palo_object(args, logger, new_service_group, 'ServiceGroup', tree, device, devtype, failures)
                     else:
-                        logger.warn("{} \'{}\': Not attempting to create ServiceGroup \'{}\'. No members! Skipping...".format(devtype, device, new_service_group))
+                        logger.warning("{} \'{}\': Not attempting to create ServiceGroup \'{}\'. No members! Skipping...".format(devtype, device, new_service_group))
             else:
                 # no tags requested, check for group members
                 if new_service_group.value:
                     for member in new_service_group.value:
                         if member not in services:
-                            logger.warn("{} \'{}\': Not attempting to create ServiceGroup \'{}\'. Missing member \'{}\'! Skipping...".format(devtype, device, new_service_group, member))
+                            logger.warning("{} \'{}\': Not attempting to create ServiceGroup \'{}\'. Missing member \'{}\'! Skipping...".format(devtype, device, new_service_group, member))
                             break
                     else:
                         create_palo_object(args, logger, new_service_group, 'ServiceGroup', tree, device, devtype, failures)
                 else:
-                    logger.warn("{} \'{}\': Not attempting to create ServiceGroup \'{}\'. No members! Skipping...".format(devtype, device, new_service_group))
+                    logger.warning("{} \'{}\': Not attempting to create ServiceGroup \'{}\'. No members! Skipping...".format(devtype, device, new_service_group))
         else:
-            logger.warn("{} \'{}\': Not attempting to create ServiceGroup \'{}\'. Already exists! Skipping...".format(devtype, device, new_service_group))
+            logger.warning("{} \'{}\': Not attempting to create ServiceGroup \'{}\'. Already exists! Skipping...".format(devtype, device, new_service_group))
     else:
         create_palo_object(args, logger, new_service_group, 'ServiceGroup', tree, device, devtype, failures)
 
@@ -708,7 +710,7 @@ def create_palo_tag(args, logger, new_tag, tags, devtype, tree, device, failures
         if new_tag.name not in tags:
             create_palo_object(args, logger, new_tag, 'Tag', tree, device, devtype, failures)
         else:
-            logger.warn("{} \'{}\': Not attempting to create Tag \'{}\'. Already exists! Skipping...".format(devtype, device, new_tag))
+            logger.warning("{} \'{}\': Not attempting to create Tag \'{}\'. Already exists! Skipping...".format(devtype, device, new_tag))
     else:
         create_palo_object(args, logger, new_tag, 'Tag', tree, device, devtype, failures)
 
@@ -721,7 +723,7 @@ def create_palo_dip(args, logger, new_dip, dips, devtype, tree, device, failures
         if new_dip.name not in dips:
             create_palo_object(args, logger, new_dip, 'Dip', tree, device, devtype, failures)
         else:
-            logger.warn("{} \'{}\': Not attempting to create Dip \'{}\'. Already exists! Skipping...".format(devtype, device, new_dip))
+            logger.warning("{} \'{}\': Not attempting to create Dip \'{}\'. Already exists! Skipping...".format(devtype, device, new_dip))
     else:
         create_palo_object(args, logger, new_dip, 'Dip', tree, device, devtype, failures)
 
@@ -739,58 +741,58 @@ def create_palo_objects(args, logger, dbedit_objects, live_objects, subclass, tr
                     if d.name == l.name:
                         if subclass == 'AddressObject':
                             if issubclass(type(l), AddressObject):
-                                logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
+                                logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
                                 break
                         elif subclass == 'AddressGroup':
                             if issubclass(type(l), AddressGroup):
-                                logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
+                                logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
                                 break
                         elif subclass == 'ApplicationContainer':
                             if issubclass(type(l), ApplicationContainer):
-                                logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
+                                logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
                                 break
                         elif subclass == 'ApplicationFilter':
                             if issubclass(type(l), ApplicationFilter):
-                                logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
+                                logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
                                 break
                         elif subclass == 'ApplicationObject':
                             if issubclass(type(l), ApplicationObject):
-                                logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
+                                logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
                                 break
                         elif subclass == 'ApplicationGroup':
                             if issubclass(type(l), ApplicationGroup):
-                                logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
+                                logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
                                 break
                         elif subclass == 'ServiceObject':
                             if issubclass(type(l), ServiceObject):
-                                logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
+                                logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
                                 break
                         elif subclass == 'ServiceGroup':
                             if issubclass(type(l), ServiceGroup):
-                                logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
+                                logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
                                 break
                         elif subclass == 'Tag':
                             if issubclass(type(l), Tag):
-                                logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
+                                logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
                                 break
                         elif subclass == 'Dip':
                             if issubclass(type(l), Dip):
-                                logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
+                                logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
                                 break
                         elif subclass == 'StaticRoute':
                             if issubclass(type(l), StaticRoute):
-                                logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
+                                logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
                                 break
                         elif subclass == 'SecurityRule':
                             if issubclass(type(l), SecurityRule):
-                                logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
+                                logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
                                 break
                         elif subclass == 'NatRule':
                             if issubclass(type(l), NatRule):
-                                logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
+                                logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Already exists! Skipping...".format(devtype, device, subclass, d.name))
                                 break
                         else:
-                            logger.warn("{} \'{}\': Not attempting to create {} \'{}\'. Unknown subclass but name already used! Skipping...".format(devtype, device, subclass, d.name))
+                            logger.warning("{} \'{}\': Not attempting to create {} \'{}\'. Unknown subclass but name already used! Skipping...".format(devtype, device, subclass, d.name))
                             continue
                 else:
                     # object does not already exist
@@ -798,7 +800,7 @@ def create_palo_objects(args, logger, dbedit_objects, live_objects, subclass, tr
             else:
                 create_palo_object(args, logger, d, subclass, tree, device, devtype, failures)
         else:
-            logger.warn("{} \'{}\': No objects of type \'{}\' to create.".format(devtype, device, subclass))
+            logger.warning("{} \'{}\': No objects of type \'{}\' to create.".format(devtype, device, subclass))
 
 def create_palo_object(args, logger, object, subclass, tree, device, devtype, failures):
 
@@ -825,7 +827,7 @@ def create_palo_object(args, logger, object, subclass, tree, device, devtype, fa
                     logger.error("{}".format(neutralise_newlines(repr(e), args, logger)))
                     failures.add(object.name)
     else:
-        logger.warn("{} \'{}\': No object of type \'{}\' to create.".format(devtype, device, subclass))
+        logger.warning("{} \'{}\': No object of type \'{}\' to create.".format(devtype, device, subclass))
 
 def create_palo_route(args, logger, new_route, routes, devtype, tree, device, failures):
 
@@ -835,7 +837,7 @@ def create_palo_route(args, logger, new_route, routes, devtype, tree, device, fa
         if new_route.name not in routes:
             create_palo_object(args, logger, new_route, 'StaticRoute', tree, device, devtype, failures)
         else:
-            logger.warn("{} \'{}\': Not attempting to create Tag \'{}\'. Already exists! Skipping...".format(devtype, device, new_route))
+            logger.warning("{} \'{}\': Not attempting to create Tag \'{}\'. Already exists! Skipping...".format(devtype, device, new_route))
     else:
         create_palo_object(args, logger, new_route, 'StaticRoute', tree, device, devtype, failures)
 
@@ -868,12 +870,12 @@ def add_to_palo_group(args, logger, o, available_groups, available_members, devt
             if member not in existing_members:
                 add_palo_member(args, logger, o, group, member, devtype, device, failures)
             else:
-                logger.warn("{} \'{}\': Member \'{}\' already in group \'{}\'! Skipping...".format(devtype, device, member, o.name))
+                logger.warning("{} \'{}\': Member \'{}\' already in group \'{}\'! Skipping...".format(devtype, device, member, o.name))
 
     except Exception as e:
         logger.error("{}".format(neutralise_newlines(repr(e), args, logger)))
         failures.add(o.name)
-        logger.warn("{} \'{}\': Cannot add to group {} \'{}\'. FAILED!".format(devtype, device, str(type(group).__name__), o.name))
+        logger.warning("{} \'{}\': Cannot add to group {} \'{}\'. FAILED!".format(devtype, device, str(type(group).__name__), o.name))
 
 def add_palo_member(args, logger, o, group, member, devtype, device, failures):
 
@@ -910,7 +912,7 @@ def add_palo_member(args, logger, o, group, member, devtype, device, failures):
     except Exception as e:
                     logger.error("{}".format(neutralise_newlines(repr(e), args, logger)))
                     failures.add(o.name)
-                    logger.warn("{} \'{}\': Cannot add \'{}\' to group \'{}\'. FAILED!".format(devtype, device, member, o.name))
+                    logger.warning("{} \'{}\': Cannot add \'{}\' to group \'{}\'. FAILED!".format(devtype, device, member, o.name))
 
 def remove_from_palo_group(args, logger, o, available_groups, available_members, devtype, subclass, tree, device, failures):
 
@@ -935,12 +937,12 @@ def remove_from_palo_group(args, logger, o, available_groups, available_members,
             if member in existing_members:
                 remove_palo_member(args, logger, o, group, member, available_members, tree, devtype, device, failures)
             else:
-                logger.warn("{} \'{}\': Member \'{}\' not in group \'{}\'! Skipping...".format(devtype, device, member, o.name))
+                logger.warning("{} \'{}\': Member \'{}\' not in group \'{}\'! Skipping...".format(devtype, device, member, o.name))
 
     except Exception as e:
         logger.error("{}".format(neutralise_newlines(repr(e), args, logger)))
         failures.add(o.name)
-        logger.warn("{} \'{}\': Cannot attempt to remove from group {} \'{}\'. FAILED!".format(devtype, device, str(type(group).__name__), o.name))
+        logger.warning("{} \'{}\': Cannot attempt to remove from group {} \'{}\'. FAILED!".format(devtype, device, str(type(group).__name__), o.name))
 
 def remove_palo_member(args, logger, o, group, member, available_members, tree, devtype, device, failures):
 
@@ -985,7 +987,7 @@ def remove_palo_member(args, logger, o, group, member, available_members, tree, 
     except Exception as e:
         logger.error("{}".format(neutralise_newlines(repr(e), args, logger)))
         failures.add(o.name)
-        logger.warn("{} \'{}\': Cannot remove \'{}\' from group \'{}\'. FAILED!".format(devtype, device, member, o.name))
+        logger.warning("{} \'{}\': Cannot remove \'{}\' from group \'{}\'. FAILED!".format(devtype, device, member, o.name))
 
 ####################################################################################
 #
@@ -1033,7 +1035,7 @@ def delete_palo_object(args, logger, o, object_names, devtype, subclass, tree, d
     except Exception as e:
         logger.error("{}".format(neutralise_newlines(repr(e), args, logger)))
         failures.add(o.name)
-        logger.warn("{} \'{}\': Cannot delete {} \'{}\'. FAILED!".format(devtype, device, str(type(object).__name__), o.name))
+        logger.warning("{} \'{}\': Cannot delete {} \'{}\'. FAILED!".format(devtype, device, str(type(object).__name__), o.name))
 
 def delete_palo_dip(args, logger, o, existing_dip_names, devtype, tree, device, failures):
 
@@ -1074,17 +1076,20 @@ def rename_palo_object(args, logger, o, object_names, devtype, subclass, tree, d
     try:
         object.refresh()
 
-        if not args.test:
-            object.rename(o.newname)
-            if not args.quiet:
-                logger.info("{} \'{}\': Successfully renamed {} \'{}\' to \'{}\'. OK!".format(devtype, device, o.type, name, o.newname))
+        if o.newname not in object_names:
+            if not args.test:
+                object.rename(o.newname)
+                if not args.quiet:
+                    logger.info("{} \'{}\': Successfully renamed {} \'{}\' to \'{}\'. OK!".format(devtype, device, o.type, name, o.newname))
+            else:
+                if not args.quiet:
+                    logger.info("{} \'{}\': TEST MODE - not renaming {} \'{}\' to \'{}\'. TEST!".format(devtype, device, o.type, o.name, o.newname))
         else:
-            if not args.quiet:
-                logger.info("{} \'{}\': TEST MODE - not renaming {} \'{}\' to \'{}\'. TEST!".format(devtype, device, o.type, o.name, o.newname))
+            logger.warning("{} \'{}\': Not attempting to rename {} \'{}\' to \'{}\'. Newname already exists! Skipping...".format(devtype, device, o.type, name, o.newname))
     except Exception as e:
         logger.error("{}".format(neutralise_newlines(repr(e), args, logger)))
         failures.add(name)
-        logger.warn("{} \'{}\': Cannot rename \'{}\'. FAILED!".format(devtype, device, name))
+        logger.warning("{} \'{}\': Cannot rename \'{}\'. FAILED!".format(devtype, device, name))
 
 def edit_palo_object(args, logger, o, object_names, devtype, subclass, tree, device, failures):
 
@@ -1120,7 +1125,7 @@ def edit_palo_object(args, logger, o, object_names, devtype, subclass, tree, dev
     except Exception as e:
         logger.error("{}".format(neutralise_newlines(repr(e), args, logger)))
         failures.add(name)
-        logger.warn("{} \'{}\': Cannot edit {} \'{}\'. FAILED!".format(devtype, device, t, name))
+        logger.warning("{} \'{}\': Cannot edit {} \'{}\'. FAILED!".format(devtype, device, t, name))
 
 ####################################################################################
 #
@@ -1336,14 +1341,14 @@ def read_dbedit_csv(args, logger, filename, emails, email_subject, email_message
                             if check_dbedit_syntax_palo_dip(row[op_action], row[members], row[tag], args):
                                 o = Dip(ip=row[members], tag=row[tag])
                             else:
-                                logger.warn('dbedit: junk syntax for Dip \'{}#{}#{}\', skipping...'.format(row[op_action], row[ip], row[tag]))
+                                logger.warning('dbedit: junk syntax for Dip \'{}#{}#{}\', skipping...'.format(row[op_action], row[ip], row[tag]))
                         else:
                             o = DeleteObject(name=row[name], type=row[type])
                     elif row[op_action] == 'rename':
                         if row[value]:
                             o = RenameObject(name=row[name], type=row[type], newname=row[value])
                         else:
-                            logger.warn('dbedit: junk syntax for RenameObject \'{}#{}#{}#{}\', skipping...'.format(row[op_action], row[name], row[type], row[value]))
+                            logger.warning('dbedit: junk syntax for RenameObject \'{}#{}#{}#{}\', skipping...'.format(row[op_action], row[name], row[type], row[value]))
                     elif row[op_action] == 'edit':
                         fields_to_edit = dict()
                         # do all the string-to-list conversions
@@ -1472,7 +1477,7 @@ def read_dbedit_csv(args, logger, filename, emails, email_subject, email_message
                             if row[subtype] == 'ip-range':
                                 o = AddressObject(name=row[name], value=row[value], type=row[subtype], description=row[description], tag=row[tag])
                         else:
-                            logger.warn('dbedit: junk syntax for AddressObject \'{}#{}#{}#{}#{}#{}#{}\', skipping...'.format(row[name], row[description], row[tag], row[subtype], row[value], row[ip], row[cidr]))
+                            logger.warning('dbedit: junk syntax for AddressObject \'{}#{}#{}#{}#{}#{}#{}\', skipping...'.format(row[name], row[description], row[tag], row[subtype], row[value], row[ip], row[cidr]))
                     elif row[type] == 'address-group':
                         # make address-group object
                         if check_dbedit_syntax_palo_addressgroup(row[name], row[description], row[subtype], row[tag], row[members], row[value], args):
@@ -1489,7 +1494,7 @@ def read_dbedit_csv(args, logger, filename, emails, email_subject, email_message
                                     row[members] = ['placeholder']
                                 o = AddressGroup(name=row[name], description=row[description], static_value=row[members], tag=row[tag])
                         else:
-                            logger.warn('dbedit: junk syntax for AddressGroup \'{}#{}#{}#{}\', skipping...'.format(row[name], row[description], row[tag], row[members]))
+                            logger.warning('dbedit: junk syntax for AddressGroup \'{}#{}#{}#{}\', skipping...'.format(row[name], row[description], row[tag], row[members]))
                     elif row[type] == 'service':
                         # make service object
                         if not row[source_port]:
@@ -1497,13 +1502,13 @@ def read_dbedit_csv(args, logger, filename, emails, email_subject, email_message
                         if check_dbedit_syntax_palo_service(row[name], row[protocol], row[source_port], row[destination_port], row[description], row[tag], args):
                             o = ServiceObject(name=row[name], protocol=row[protocol], source_port=row[source_port], destination_port=row[destination_port], description=row[description], tag=row[tag])
                         else:
-                            logger.warn('dbedit: junk syntax for ServiceObject \'{}#{}#{}#{}#{}#{}\', skipping...'.format(row[name], row[protocol], row[source_port], row[destination_port], row[description], row[tag]))
+                            logger.warning('dbedit: junk syntax for ServiceObject \'{}#{}#{}#{}#{}#{}\', skipping...'.format(row[name], row[protocol], row[source_port], row[destination_port], row[description], row[tag]))
                     elif row[type] == 'service-group':
                         # make service-group object
                         if check_dbedit_syntax_palo_servicegroup(row[name], row[members], row[tag], args):
                             o = ServiceGroup(name=row[name], value=row[members], tag=row[tag])
                         else:
-                            logger.warn('dbedit: junk syntax for ServiceGroup \'{}#{}#{}\', skipping...'.format(row[name], row[members], row[tag]))
+                            logger.warning('dbedit: junk syntax for ServiceGroup \'{}#{}#{}\', skipping...'.format(row[name], row[members], row[tag]))
                     elif row[type] == 'tag':
                         # make tag object
                         if not row[color]:
@@ -1511,13 +1516,13 @@ def read_dbedit_csv(args, logger, filename, emails, email_subject, email_message
                         if check_dbedit_syntax_palo_tag(row[name], row[description], args):
                             o = Tag(name=row[name], comments=row[description], color=row[color])
                         else:
-                            logger.warn('dbedit: junk syntax for Tag \'{}#{}#{}\', skipping...'.format(row[name], row[description], row[color]))
+                            logger.warning('dbedit: junk syntax for Tag \'{}#{}#{}\', skipping...'.format(row[name], row[description], row[color]))
                     elif row[type] == 'dip':
                         # make dip object after syntax checking
                         if check_dbedit_syntax_palo_dip(row[op_action], row[members], row[tag], args):
                             o = Dip(ip=row[members], tag=row[tag])
                         else:
-                            logger.warn('dbedit: junk syntax for Dip \'{}#{}#{}\', skipping...'.format(row[op_action], row[ip], row[tag]))
+                            logger.warning('dbedit: junk syntax for Dip \'{}#{}#{}\', skipping...'.format(row[op_action], row[ip], row[tag]))
                     elif row[type] == 'route':
                         # make route object
                         if not row[interface]:
@@ -1535,7 +1540,7 @@ def read_dbedit_csv(args, logger, filename, emails, email_subject, email_message
                         if check_dbedit_syntax_palo_route(row[name], row[cidr], row[subtype], row[nexthop], row[interface], row[value], row[metric], args):
                             o = StaticRoute(name=row[name], destination=row[cidr], nexthop_type=row[subtype], nexthop=row[nexthop], interface=row[interface], admin_dist=row[value], metric=row[metric])
                         else:
-                            logger.warn('dbedit: junk syntax for Route \'{}#{}#{}#{}#{}#{}#{}\', skipping...'.format(row[name], row[cidr], row[subtype], row[nexthop], row[interface], row[value], row[metric]))
+                            logger.warning('dbedit: junk syntax for Route \'{}#{}#{}#{}#{}#{}#{}\', skipping...'.format(row[name], row[cidr], row[subtype], row[nexthop], row[interface], row[value], row[metric]))
                     elif row[type] == 'application':
                         # make application object
                         if row[tunnel_applications]:
@@ -1589,13 +1594,13 @@ def read_dbedit_csv(args, logger, filename, emails, email_subject, email_message
                                                   prone_to_misuse=row[prone_to_misuse], pervasive_use=row[pervasive], file_type_ident=row[file_type_ident], virus_ident=row[virus_ident], \
                                                   data_ident=row[data_ident], tag=row[tag])
                         else:
-                            logger.warn('dbedit: junk syntax for ApplicationObject \'{}\', skipping...'.format(row[name]))
+                            logger.warning('dbedit: junk syntax for ApplicationObject \'{}\', skipping...'.format(row[name]))
                     elif row[type] == 'application-group':
                         # make application-group object
                         if check_dbedit_syntax_palo_application_group(row[name], row[members], args):
                             o = ApplicationGroup(name=row[name], value=row[members], tag=row[tag])
                         else:
-                            logger.warn('dbedit: junk syntax for ApplicationGroup \'{}#{}\', skipping...'.format(row[name], row[members]))
+                            logger.warning('dbedit: junk syntax for ApplicationGroup \'{}#{}\', skipping...'.format(row[name], row[members]))
                     elif row[type] in ruletypes:
                         # make security-rule object
                         # as rule has no 'position' attribute new rules are automatically added to the end of the policy
@@ -1738,7 +1743,7 @@ def read_dbedit_csv(args, logger, filename, emails, email_subject, email_message
                                              vulnerability=row[vulnerability], \
                                              wildfire_analysis=row[wildfire_analysis])
                         else:
-                            logger.warn('dbedit: junk syntax for SecurityRule \'{}#{}#{}#{}\', skipping...'.format(row[name], row[rule_action], row[subtype], row[description]))
+                            logger.warning('dbedit: junk syntax for SecurityRule \'{}#{}#{}#{}\', skipping...'.format(row[name], row[rule_action], row[subtype], row[description]))
                     elif row[type] in nattypes:
                         # make nat-rule object
                         # Force disabled to True
@@ -1869,9 +1874,9 @@ def read_dbedit_csv(args, logger, filename, emails, email_subject, email_message
                                              to_interface=row[interface], \
                                              tozone=row[tozone])
                         else:
-                            logger.warn('dbedit: junk syntax for NatRule \'{}#{}#{}\', skipping...'.format(row[name], row[description], row[tozone]))
+                            logger.warning('dbedit: junk syntax for NatRule \'{}#{}#{}\', skipping...'.format(row[name], row[description], row[tozone]))
                     else:
-                        logger.warn('dbedit: Unsupported type \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(row[type]))
+                        logger.warning('dbedit: Unsupported type \'{}\', (contact your nearest Security Engineering resource). skipping...'.format(row[type]))
 
                     ###############################################################################
                     #
@@ -2129,26 +2134,23 @@ def check_dbedit_syntax_palo_route(name, destination, nexthop_type, nexthop, int
     # admin_dist (int) – Administrative distance 10-240
     # metric (int) – Metric (Default: 10) 1-65535
 
-    if args.no_checks:
-        return True
-    else:
-        types = ['ip-address', 'next-vr', 'discard', 'None']
-        metric = int(metric)
-        admin_dist = int(admin_dist)
+    types = ['ip-address', 'next-vr', 'discard', 'None']
+    metric = int(metric)
+    admin_dist = int(admin_dist)
 
-        if check_ip(nexthop):
-            if check_cidr(destination):
-                if isinstance(metric, int):
-                    if 1 <= metric <= 65535:
-                        if check_max_length(name, 31):
-                            if isinstance(admin_dist, int):
-                                if 10 <= admin_dist <= 240:
-                                    if nexthop_type in types:
-                                        # requires the double () here to check more than one pattern
-                                        if interface is None or interface.startswith(('ethernet', 'loopback')):
-                                            return True
+    if check_ip(nexthop):
+        if check_cidr(destination):
+            if isinstance(metric, int):
+                if 1 <= metric <= 65535:
+                    if check_max_length(name, 31):
+                        if isinstance(admin_dist, int):
+                            if 10 <= admin_dist <= 240:
+                                if nexthop_type in types:
+                                    # requires the double () here to check more than one pattern
+                                    if interface is None or interface.startswith(('ethernet', 'loopback', 'ae')):
+                                        return True
 
-        return False
+    return False
 
 def check_dbedit_syntax_palo_application(name, category, subcategory, technology, risk, args):
 
@@ -2543,8 +2545,29 @@ def print_palo_object(object, logger):
               object.exclude_acl, \
               sep=",")
 
+    elif issubclass(type(object), VirtualRouter):
+        print(object.name, object.interface, sep=",")
+
+    elif issubclass(type(object), EthernetInterface):
+        print(object.name, object.mode, object.ip, object.mtu, object.management_profile, object.comment, sep=",")
+
+    elif issubclass(type(object), Layer3Subinterface):
+        print(object.tag, object.ip, object.mtu, object.management_profile, object.comment, sep=",")
+
+    elif issubclass(type(object), AggregateInterface):
+        print(object.name, object.mode, object.ip, object.mtu, object.management_profile, object.comment, sep=",")
+
+    elif issubclass(type(object), TunnelInterface):
+        print(object.ip, object.mtu, object.management_profile, object.comment, sep=",")
+
+    elif issubclass(type(object), LoopbackInterface):
+        print(object.ip, object.mtu, object.management_profile, object.comment, sep=",")
+
+    elif issubclass(type(object), VlanInterface):
+        print(object.ip, object.mtu, object.management_profile, object.comment, sep=",")
+
     else:
-        logger.warn("Unknown type \'{}\'".format(type(object)))
+        logger.warning("Unknown type \'{}\'".format(type(object)))
 
 def print_palo_objects_list(name, objects, logger):
 
@@ -2678,7 +2701,7 @@ def write_objects_dbedit_csv(filename, name, objects, ruletype, objsource, filem
 
         # '+' here means 'read' as well
         try:
-            with open(fullfilename, file_action + '+', encoding='utf-8', newline='') as f:
+            with open('../data/databases/' + fullfilename, file_action + '+', encoding='utf-8', newline='') as f:
 
                 # have to quote all the fields
                 writer = csv.writer(f, delimiter=',', doublequote=False, escapechar='"', quoting=csv.QUOTE_ALL)
@@ -4125,14 +4148,17 @@ def check_ip(i):
 
 def check_cidr(i):
 
-    # will return boolean value depending on CIDR provided
+    # will return boolean value depending on CIDR provided although if mask is not provided it assumes /32!
 
-    try:
-        ip = ipaddress.ip_network(i)
-    except ValueError as e:
+    if "/" not in i:
         return False
     else:
-        return True
+        try:
+            ip = ipaddress.ip_network(i)
+        except ValueError as e:
+            return False
+        else:
+            return True
 
 def check_max_length(n, length):
 
@@ -4482,25 +4508,26 @@ def main():
             #
             ###############################################################################
 
-            if args.output or (args.filename and not args.no_checks):
+            if not args.test:
+                if args.output or (args.filename and not args.no_checks):
 
-                # collect Global Objects
-                if args.verbose:
-                    logger.info('Collecting Global Objects from Panorama \'{}\''.format(pano.hostname))
+                    # collect Global Objects
+                    if args.verbose:
+                        logger.info('Collecting Global Objects from Panorama \'{}\''.format(pano.hostname))
 
-                all_global_objects, G_address_names, G_address_group_names, G_application_names, G_application_group_names, G_application_container_names, G_application_filter_names, G_service_names, G_service_group_names, G_tag_names = get_palo_objects(pano, args, logger)
+                    all_global_objects, G_address_names, G_address_group_names, G_application_names, G_application_group_names, G_application_container_names, G_application_filter_names, G_service_names, G_service_group_names, G_tag_names = get_palo_objects(pano, args, logger)
 
-                # collect Pre-Defined Objects
-                if args.verbose:
-                    logger.info('Collecting Predefined Objects from \'{}\''.format(pano.hostname))
+                    # collect Pre-Defined Objects
+                    if args.verbose:
+                        logger.info('Collecting Predefined Objects from \'{}\''.format(pano.hostname))
 
-                pd_live_application_names, pd_live_application_container_names, pd_live_service_names, pd_live_tag_names = get_palo_predefined_objects(pano, args, logger)
+                    pd_live_application_names, pd_live_application_container_names, pd_live_service_names, pd_live_tag_names = get_palo_predefined_objects(pano, args, logger)
 
-                # Collect Zone and Interface details
-                if args.verbose:
-                    logger.info('Collecting Zone and Interface Objects from \'{}\''.format(pano.hostname))
+                    # Collect Zone and Interface details
+                    if args.verbose:
+                        logger.info('Collecting Zone and Interface Objects from \'{}\''.format(pano.hostname))
 
-                all_device_group_zones, all_device_group_interfaces = get_palo_device_group_network_info(pano, args, logger)
+                    all_device_group_zones, all_device_group_interfaces = get_palo_device_group_network_info(pano, args, logger)
 
             ###############################################################################
             #
@@ -4516,30 +4543,65 @@ def main():
                         logger.info('Live Device: Found Device Group \'{}\''.format(device_group.name))
 
                 if args.location == 'ALL':
-                    if not args.quiet:
+                    if args.verbose:
                         logger.info('ALL Device Groups requested for scope')
                 else:
                     for device_group in device_groups:
                         if device_group.name == args.location:
-                            if not args.quiet:
+                            if args.verbose:
                                 logger.info('Matched Device Group \'{}\' with supplied argument'.format(args.location))
-                            break
-                    else:
-                        logger.error('Requested Device Group \'{}\' is not found, exiting...'.format(args.location))
-                        for email in emails:
-                            send_email(email_subject, email + __email_domain__, logfile, email_message, args, logger)
-                        if args.filename and not args.test and not args.no_locks:
-                            release_locks(pano, args, logger)
-                        sys.exit(1)
-
-                    for device_group in device_groups:
-                        if device_group.name != args.location:
+                        else:
                             if args.verbose == 2:
                                 logger.info('Removing Device Group \'{}\' from tree'.format(device_group.name))
                             pano.remove(device_group)
 
             except Exception as e:
-                logger.error('Cannot refresh DeviceGroup for device \'{}\', ({}) exiting...'.format(pano.hostname, neutralise_newlines(repr(e), args, logger)))
+                logger.error('Cannot refresh Device Groups for device \'{}\', ({}) exiting...'.format(pano.hostname, neutralise_newlines(repr(e), args, logger)))
+                if args.filename and not args.test and not args.no_locks:
+                    release_locks(pano, args, logger)
+                sys.exit(1)
+
+            ###############################################################################
+            #
+            # figure out which Templates are in scope (supports ALL or specific)
+            #
+            ###############################################################################
+
+            try:
+                templates = Template.refreshall(pano)
+
+                if args.verbose:
+                    for template in templates:
+                        logger.info('Live Device: Found Template \'{}\''.format(template.name))
+
+                if args.location == 'ALL':
+                    if args.verbose:
+                        logger.info('ALL Templates requested for scope')
+                else:
+                    for template in templates:
+                        if template.name == args.location:
+                            if args.verbose:
+                                logger.info('Matched Template \'{}\' with supplied argument'.format(args.location))
+                        else:
+                            if args.verbose == 2:
+                                logger.info('Removing Template \'{}\' from tree'.format(template.name))
+                            pano.remove(template)
+
+            except Exception as e:
+                logger.error('Cannot refresh Templates for device \'{}\', ({}) exiting...'.format(pano.hostname, neutralise_newlines(repr(e), args, logger)))
+                if args.filename and not args.test and not args.no_locks:
+                    release_locks(pano, args, logger)
+
+            ###############################################################################
+            #
+            # if location is not ALL and not matches were found then exit 
+            #
+            ###############################################################################
+
+            if args.location != 'ALL' and not device_groups and not templates:
+                logger.error('Requested Device Group or Template \'{}\' is not found, exiting...'.format(args.location))
+                for email in emails:
+                    send_email(email_subject, email + __email_domain__, logfile, email_message, args, logger)
                 if args.filename and not args.test and not args.no_locks:
                     release_locks(pano, args, logger)
                 sys.exit(1)
@@ -4554,6 +4616,129 @@ def main():
 
                 if args.verbose == 3:
                     logger.debug('Panorama Child {}'.format(str(type(child))))
+
+                ###############################################################################
+                #
+                # Template Section
+                #
+                ###############################################################################
+
+                if issubclass(type(child), Template):
+                    filename = get_palo_filename(child, args, logger)
+
+                    ###############################################################################
+                    #
+                    # get 'lists' and 'sets' of Template Zones, Virtual-Routers and Interfaces
+                    #
+                    ###############################################################################
+
+                    if args.verbose:
+                        logger.info('Collecting zones and routers for Template \'{}\''.format(child.name))
+
+                    tp_zones, tp_vrouters, tp_zone_names, tp_vrouter_names = get_palo_network(child, args, logger)
+
+                    if args.output or args.test or (args.filename and not args.no_checks):
+
+                        # collect Template interfaces
+                        if args.verbose:
+                            logger.info('Collecting interfaces for Template \'{}\''.format(child.name))
+
+                        phy_interfaces, sub_interfaces, vpn_interfaces, loop_interfaces, vlan_interfaces, agg_interfaces, tp_phy_interfaces_names, tp_sub_interfaces_names, tp_vpn_interfaces_names, tp_loop_interfaces_names, tp_vlan_interfaces_names, tp_agg_interfaces_names, all_interfaces = get_palo_interfaces(child, args, logger)
+
+                    else:
+
+                        phy_interfaces = set()
+                        sub_interfaces = set()
+                        vpn_interfaces = set()
+                        loop_interfaces = set()
+                        vlan_interfaces = set()
+                        agg_interfaces = set()
+                        tp_phy_interfaces_names = set()
+                        tp_sub_interfaces_names = set()
+                        tp_vpn_interfaces_names = set()
+                        tp_loop_interfaces_names = set()
+                        tp_vlan_interfaces_names = set()
+                        tp_agg_interfaces_names = set()
+                        all_interfaces = set()
+
+                    ###############################################################################
+                    #
+                    # print zones, routers, interfaces to console as requested
+                    #
+                    ###############################################################################
+
+                    if args.verbose == 2:
+                        print_palo_objects_list(child.name + ' Zones', tp_zones, logger)
+                        print_palo_objects_list(child.name + ' Routers', tp_vrouters, logger)
+                        print_palo_objects_list(child.name + ' Eth Interfaces', phy_interfaces, logger)
+                        print_palo_objects_list(child.name + ' Sub Interfaces', sub_interfaces, logger)
+			# add all the other int types here
+
+                    ###############################################################################
+                    #
+                    # Collect StaticRoute objects per VRF
+                    #
+                    ###############################################################################
+
+                    for vrouter in tp_vrouters:
+
+                        if args.output or args.test or (args.filename and not args.no_checks):
+
+                            if args.verbose:
+                                logger.info('Collecting routes for router \'{}\''.format(vrouter.name))
+
+                            vrf_static_routes, vrf_static_route_names = get_palo_routes(vrouter, args, logger)
+
+                        else:
+
+                            vrf_static_routes = set()
+                            vrf_static_route_names = set()
+
+                        ###############################################################################
+                        #
+                        # write StaticRoutes to file as requested
+                        #
+                        ###############################################################################
+
+                        if args.output:
+                            write_objects_dbedit_csv(filename + '_apidata-' + t, 'VRF Static Routes', vrf_static_routes, 'route', vrouter.name, 'append', args, logger)
+
+                        ###############################################################################
+                        #
+                        # print StaticRoutes to console as requested
+                        #
+                        ###############################################################################
+
+                        if args.verbose == 2:
+                            if vrf_static_routes:
+                                for vrf_static_route in vrf_static_routes:
+                                    print_palo_object(vrf_static_route, logger)
+                            else:
+                                logger.info('Virtual Router \'{}\' contains zero Routes'.format(vrouter.name))
+
+                        ###############################################################################
+                        #
+                        # update any StaticRoutes - only supports 'default' vr
+                        #
+                        ###############################################################################
+
+                        if args.filename:
+
+                            for action in csv_action_types:
+
+                                a, b, c, d, e, f, g, h, i, j, k, deletions, m, n, o, static_routes, q, r, s, t, u, v, w, x, y, z, az, bz, cz, dbedit_deletions, ez, fz, gz, dbedit_static_routes, hz = get_dbedit_actions(dbedit_objects, null_set, null_set, 'palo', child.name, action, 'VRF', args, logger)
+
+                                # update StaticRoute
+                                update_objects(static_routes, vrouter, 'Virtual Router', 'default', action, args, logger, filename, failures, null_set, null_set, null_set, null_set, null_set, null_set, null_set, null_set, null_set, null_set, null_set, vrf_static_route_names, null_set)
+
+                                # perform Deletions
+                                update_objects(deletions, vrouter, 'Virtual Router', 'default', action, args, logger, filename, failures, null_set, null_set, null_set, null_set, null_set, null_set, null_set, null_set, null_set, null_set, null_set, vrf_static_route_names, null_set)
+
+                ###############################################################################
+                #
+                # Device Group Section
+                #
+                ###############################################################################
 
                 if issubclass(type(child), DeviceGroup):
                     filename = get_palo_filename(child, args, logger)
